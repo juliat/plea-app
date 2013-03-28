@@ -13,18 +13,12 @@ function Chart() {
 
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
 Chart.prototype.init = function() {
-	this.stage = new Kinetic.Stage({
-		container: 'chart',
-		height: this.chartElement.height(),
-		width: this.chartElement.width()
-	})
+	this.paper = new Raphael(document.getElementById('chart'), 800, 800);
 };
 
 Chart.prototype.drawXAxis = function() {
 	// for each decade, draw the lines within that decade on the log scale
 	var i;
-	//create layer
-	var layer = new Kinetic.Layer();
 	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minCountPerMinuteExponent + i);
 		var decadeHighValue = Math.pow(10, this.minCountPerMinuteExponent + i + 1);
@@ -34,49 +28,48 @@ Chart.prototype.drawXAxis = function() {
 		console.log('decade base value for decade ' + i + ' is ' + decadeBaseValue);
 		console.log('decade high value for decade ' + i + ' is ' + decadeHighValue);
 
+		// draw the guide for the base value
+		var baseLine = this.paper.height - this.valueToYPosition(decadeHeight, 1, decadeBaseValue);
+		var basePath = "M 0 " + baseLine + " l " + this.paper.width + " 0";
+		var drawBaseLine = this.paper.path(basePath);
+
+		// draw the guide for the high value
+		var highLine = this.paper.height - this.valueToYPosition(decadeHeight, 10, decadeBaseValue);
+		var highPath = "M 0 " + highLine + " l " + this.paper.width + " 10";
+		var drawHighLine = this.paper.path(highPath);
+		console.log(highLine);
+
 		// get y positions for and draw lines for values in between the high and the low
 		var yPosition;
-
 		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			yPosition = this.valueToYPosition(decadeHeight, j, decadeBaseValue);
+			//I'm confused
+			yPosition = this.paper.height - this.valueToYPosition(decadeHeight, j, decadeBaseValue);
 			console.log('y Position for intermediate line '+ j + ' : ' + yPosition);
-
-			var xLine = new Kinetic.Line({
-		        points: [0, 1000],
-		        stroke: 'black',
-        		strokeWidth: 4
-		    });
-		    layer.add(xLine);
-
-		    var rect = new Kinetic.Rect({
-		        x: 239,
-		        y: 75,
-		        width: 100,
-		        height: 50,
-		        fill: 'green',
-		        stroke: 'black',
-		        strokeWidth: 4
-		    });
-		    layer.add(rect);
+			//draw each horizontal line
+			var hpath = "M 0 " + yPosition + " l " + this.paper.width + " 0";
+			var drawHLine = this.paper.path(hpath);
 		}
-		//debugger;
-		this.stage.add(layer);
 	}
+
 	return 'done';
 }
 
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(decadeHeight, lineValue, decadeBaseValue) {
-	var y = 10 + decadeHeight * (log10(lineValue/decadeBaseValue));
-	console.log("decadeHeight is " + decadeHeight);
+	//Multiply decadeBaseValue by 100 to avoid negative exponents
+	var y = 10 + decadeHeight * (log10(lineValue/decadeBaseValue*100));
 	return y;
 }
 
 // draw regularly spaced lines for the number of days in the chart
 Chart.prototype.drawYAxis = function() {
-	var spacing = this.width/this.numberOfDays;
-	// ...
+	var spacing = this.paper.width/this.numberOfDays;
+	console.log(spacing);
+	for (var i = 0; i < this.numberOfDays; i++) {
+		var vpath = "M " + i*spacing + " 0 l 0 " + this.paper.height;
+		var drawVLine = this.paper.path(vpath); 
+	}
 }
 
 // plot historical data on the chart (should call helper methods for plotting data points on each day)
