@@ -6,8 +6,9 @@ function Chart() {
 	this.numberOfDays = 140;
 	this.minCountPerMinuteExponent = -3;
 	this.maxCountPerMinuteExponent = 3;
-	this.decades = Math.abs(this.minCountPerMinuteExponent) + Math.abs(this.maxCountPerMinuteExponent);
+	this.numberOfDecades = Math.abs(this.minCountPerMinuteExponent) + Math.abs(this.maxCountPerMinuteExponent);
 	this.chartElement = $('#chart'); 
+	this.init();
 }
 
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
@@ -22,9 +23,12 @@ Chart.prototype.init = function() {
 Chart.prototype.drawXAxis = function() {
 	// for each decade, draw the lines within that decade on the log scale
 	var i;
-	for (i = 0; i++; i < 6) {
+	//create layer
+	var layer = new Kinetic.Layer();
+	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minCountPerMinuteExponent + i);
 		var decadeHighValue = Math.pow(10, this.minCountPerMinuteExponent + i + 1);
+		var decadeHeight = this.chartElement.height() / this.numberOfDecades;
 		// draw lines for the decade high value and the decade low value
 		// [call line drawing function here]
 		console.log('decade base value for decade ' + i + ' is ' + decadeBaseValue);
@@ -32,19 +36,40 @@ Chart.prototype.drawXAxis = function() {
 
 		// get y positions for and draw lines for values in between the high and the low
 		var yPosition;
-		for (var j = 2; j++; j < 10) {
+
+		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			yPosition = valueToYPosition(decadeHighValue, decadeBaseValue, j, decadeBaseValue);
+			yPosition = this.valueToYPosition(decadeHeight, j, decadeBaseValue);
 			console.log('y Position for intermediate line '+ j + ' : ' + yPosition);
+
+			var xLine = new Kinetic.Line({
+		        points: [0, 1000],
+		        stroke: 'black',
+        		strokeWidth: 4
+		    });
+		    layer.add(xLine);
+
+		    var rect = new Kinetic.Rect({
+		        x: 239,
+		        y: 75,
+		        width: 100,
+		        height: 50,
+		        fill: 'green',
+		        stroke: 'black',
+		        strokeWidth: 4
+		    });
+		    layer.add(rect);
 		}
+		//debugger;
+		this.stage.add(layer);
 	}
 	return 'done';
 }
 
 // takes a value and coverts it to a y position on the chart
-Chart.prototype.valueToYPosition = function(hi, lo, value, decadeBaseValue) {
-	var decadeRange = hi-lo;
-	var y = 10 + decadeRange * (log10(value/decadeBaseValue));
+Chart.prototype.valueToYPosition = function(decadeHeight, lineValue, decadeBaseValue) {
+	var y = 10 + decadeHeight * (log10(lineValue/decadeBaseValue));
+	console.log("decadeHeight is " + decadeHeight);
 	return y;
 }
 
@@ -67,9 +92,10 @@ Chart.prototype.readPoint = function() {
 }
 
 // takes a point on the chart and converts it to a semantic numeric value
-Chart.prototype.pointToValue = function(hi, lo, yPosition, decadeBaseValue) {
-	var decadeRange = hi - lo;
-	var percentAwayFromVBase = (y - lo)/decadeRange;
+Chart.prototype.pointToValue = function(decadeHeight, yPosition, decadeBaseValue) {
+	// get the base position (we're talking pixels) by using the value to position funciton on the base position
+	var decadeBasePosition = this.valueToYPosition(decadeHeight, decadeBaseValue, decadeBaseValue);
+	var percentAwayFromVBase = (y - decadeBasePosition)/decadeHeight;
 	var value = decadeBaseValue - pow(10, percentAwayFromVBase);
 	return value;
 }
