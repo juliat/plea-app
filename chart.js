@@ -13,7 +13,10 @@ function Chart() {
 
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
 Chart.prototype.init = function() {
-	this.paper = new Raphael(document.getElementById('chart'), 800, 800);
+	var chartHeight = this.chartElement.height();
+	var chartWidth = this.chartElement.width();
+	var chartDOMElement = document.getElementById('chart');
+	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
 };
 
 // draws the lines on the x axis of the chart
