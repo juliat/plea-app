@@ -16,39 +16,57 @@ Chart.prototype.init = function() {
 	this.paper = new Raphael(document.getElementById('chart'), 800, 800);
 };
 
+// draws the lines on the x axis of the chart
 Chart.prototype.drawXAxis = function() {
 	// for each decade, draw the lines within that decade on the log scale
 	var i;
 
+	// these variables define the x positions for the start and end of each line
+	var lineStartX = 0;
+	var lineEndX = this.paper.width;
+
+	/* a decade is the section between two exponents of ten on the chart. For example,
+	 * a decade would be from 1-10 or 0.001-0.01.
+	 */
 	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minCountPerMinuteExponent + i);
 		var decadeHighValue = Math.pow(10, this.minCountPerMinuteExponent + i + 1);
+
+		// calculate height of a decade in pixels by dividing the chart height by
+		// the number of decades
 		var decadeHeight = this.chartElement.height() / this.numberOfDecades;
-		// draw lines for the decade high value and the decade low value
-		// [call line drawing function here]
+		
+		// just logging to check the values
 		console.log('decade base value for decade ' + i + ' is ' + decadeBaseValue);
 		console.log('decade high value for decade ' + i + ' is ' + decadeHighValue);
 
-		// draw the guide for the base value
-		var baseLine = this.paper.height - this.valueToYPosition(decadeHeight, 1, decadeBaseValue);
-		var basePath = "M 0 " + baseLine + " l " + this.paper.width + " 0";
+		// find the position for the base value of the decade. In the 1-10 decade, this value would be 1
+		// we pass in the base value twice because the valueToYPosition always requires the decadeBaseValue
+		var baseLineYPosition = this.paper.height - this.valueToYPosition(decadeHeight, decadeBaseValue, decadeBaseValue);
+		
+		// draw the baseValue line on the chart for this decade
+		/* syntax (case-sensitive) for drawing a line in raphael is: 
+		M = move to start point
+		l = draw a line relative to this point
+		*/
+		var deltaY = 0; // zero because we don't want the line to be slanted
+		var basePath = "M " + lineStartX + ' ' + baseLineYPosition + " l " + lineEndX + ' ' + deltaY;
 		var drawBaseLine = this.paper.path(basePath);
 
 		// draw the guide for the high value
-		var highLine = this.paper.height - this.valueToYPosition(decadeHeight, 10, decadeBaseValue);
-		var highPath = "M 0 " + highLine + " l " + this.paper.width + " 10";
+		var highLineYPosition = this.paper.height - this.valueToYPosition(decadeHeight, decadeBaseValue, decadeBaseValue);
+		var highPath = "M " + lineStartX + " " + highLineYPosition + " l " + lineEndX + " " + deltaY;
 		var drawHighLine = this.paper.path(highPath);
-		console.log(highLine);
+		console.log(highLineYPosition);
 
 		// get y positions for and draw lines for values in between the high and the low
-		var yPosition;
+		var intermediateLineYPosition;
 		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			//I'm confused
-			yPosition = this.paper.height - this.valueToYPosition(decadeHeight, j, decadeBaseValue);
-			console.log('y Position for intermediate line '+ j + ' : ' + yPosition);
+			intermediateLineYPosition = this.paper.height - this.valueToYPosition(decadeHeight, j, decadeBaseValue);
+			console.log('y Position for intermediate line '+ j + ' : ' + intermediateLineYPosition);
 			//draw each horizontal line
-			var hpath = "M 0 " + yPosition + " l " + this.paper.width + " 0";
+			var hpath = "M " + lineStartX + " " + intermediateLineYPosition + " l " + lineEndX + " " + deltaY;
 			var drawHLine = this.paper.path(hpath);
 		}
 	}
@@ -58,7 +76,7 @@ Chart.prototype.drawXAxis = function() {
 
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(decadeHeight, lineValue, decadeBaseValue) {
-	//Multiply decadeBaseValue by 100 to avoid negative exponents
+	// Multiply decadeBaseValue by 100 to avoid negative exponents
 	var y = 10 + decadeHeight * (log10(lineValue/decadeBaseValue*100));
 	return y;
 }
