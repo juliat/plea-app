@@ -22,7 +22,7 @@ Chart.prototype.init = function() {
 Chart.prototype.drawXAxis = function() {
 	// for each decade, draw the lines within that decade on the log scale
 	var i;
-	for (i = 0; i++; i < 6) {
+	for (i = 0; i < this.decades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minCountPerMinuteExponent + i);
 		var decadeHighValue = Math.pow(10, this.minCountPerMinuteExponent + i + 1);
 		// draw lines for the decade high value and the decade low value
@@ -32,9 +32,9 @@ Chart.prototype.drawXAxis = function() {
 
 		// get y positions for and draw lines for values in between the high and the low
 		var yPosition;
-		for (var j = 2; j++; j < 10) {
+		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			yPosition = valueToYPosition(decadeHighValue, decadeBaseValue, j, decadeBaseValue);
+			yPosition = this.valueToYPosition(decadeHighValue, decadeBaseValue, j, decadeBaseValue);
 			console.log('y Position for intermediate line '+ j + ' : ' + yPosition);
 		}
 	}
