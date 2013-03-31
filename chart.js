@@ -39,9 +39,16 @@ Chart.prototype.drawXAxis = function() {
 
 		// find the y position for the base value of the decade.
 		var baseLineYPosition = (i*decadeHeight);
+
+		var lineAttrs = {
+			'weight': '1.5',
+			'color' : '#0000ff',
+			'dataName' : 'value',
+			'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
+		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
+		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
 		
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
@@ -50,11 +57,11 @@ Chart.prototype.drawXAxis = function() {
 			lineValue = j * decadeBaseValue;
 
 			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue);
-			
-			var numDigits = 2;
-			var lineAttrs = {
-				'lineWeight': '0.5',
-				'lineColor' : '#0000ff',
+
+			var numDigits = 3;
+			lineAttrs = {
+				'weight': '0.5',
+				'color' : '#0000ff',
 				'dataName' : 'value',
 				'dataValue' : lineValue.toFixed(numDigits) + '',
 			};
@@ -87,6 +94,7 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	 */
 	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
 
+	// debugger;
 	// add the line to the drawing area
 	var line = this.paper.path(basePath);
 
@@ -98,12 +106,11 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
  	var dataValue = params['dataValue'] || '';
 
 	line.attr({"stroke-width": lineWeight,
-			   "fill": lineColor})
+			   "stroke": lineColor})
 		.data(dataName, dataValue)
         .click(function () {
             alert(this.data(dataName));
          });
-
 }
 
 // draw regularly spaced lines for the number of days in the chart
