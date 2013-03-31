@@ -4,10 +4,11 @@
 
 function Chart() {
 	this.numberOfDays = 140;
-	this.minCountPerMinuteExponent = -3;
-	this.maxCountPerMinuteExponent = 3;
-	this.numberOfDecades = Math.abs(this.minCountPerMinuteExponent) + Math.abs(this.maxCountPerMinuteExponent);
+	this.minExponent = -3;
+	this.maxExponent = 3;
+	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
 	this.chartElement = $('#chart'); 
+	this.lineAttrs = {stroke: '#0000ff', 'stroke-width': 1};
 	this.init();
 }
 
@@ -28,60 +29,81 @@ Chart.prototype.drawXAxis = function() {
 	var lineStartX = 0;
 	var lineEndX = this.paper.width;
 
-	/* a decade is the section between two exponents of ten on the chart. For example,
-	 * a decade would be from 1-10 or 0.001-0.01.
-	 */
-	for (i = 0; i < this.numberOfDecades; i++) {
-		var decadeBaseValue = Math.pow(10, this.minCountPerMinuteExponent + i);
-		var decadeHighValue = Math.pow(10, this.minCountPerMinuteExponent + i + 1);
+	// calculate height of a decade in pixels by dividing the chart height by
+	// the number of decades
+	var decadeHeight = this.chartElement.height() / this.numberOfDecades;
 
-		// calculate height of a decade in pixels by dividing the chart height by
-		// the number of decades
-		var decadeHeight = this.chartElement.height() / this.numberOfDecades;
+	/* a decade is the section between two exponents of ten on the chart. For example, a decade would be from 1-10 or 0.001-0.01. */
+	for (i = 0; i < this.numberOfDecades; i++) {
+		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 		
 		// just logging to check the values
 		console.log('decade base value for decade ' + i + ' is ' + decadeBaseValue);
-		console.log('decade high value for decade ' + i + ' is ' + decadeHighValue);
 
-		// find the position for the base value of the decade. In the 1-10 decade, this value would be 1
-		// we pass in the base value twice because the valueToYPosition always requires the decadeBaseValue
-		var baseLineYPosition = this.paper.height - this.valueToYPosition(decadeHeight, decadeBaseValue, decadeBaseValue);
+		// find the y position for the base value of the decade.
+		var baseLineYPosition = (i*decadeHeight);
 		
+		console.log('baseLineYPosition is '+baseLineYPosition);
+
 		// draw the baseValue line on the chart for this decade
-		/* syntax (case-sensitive) for drawing a line in raphael is: 
-		M = move to start point
-		l = draw a line relative to this point
-		*/
-		var deltaY = 0; // zero because we don't want the line to be slanted
-		var basePath = "M " + lineStartX + ' ' + baseLineYPosition + " l " + lineEndX + ' ' + deltaY;
-		var drawBaseLine = this.paper.path(basePath);
+		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
 
-		// draw the guide for the high value
-		var highLineYPosition = this.paper.height - this.valueToYPosition(decadeHeight, decadeBaseValue, decadeBaseValue);
-		var highPath = "M " + lineStartX + " " + highLineYPosition + " l " + lineEndX + " " + deltaY;
-		var drawHighLine = this.paper.path(highPath);
-		console.log(highLineYPosition);
-
+		
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
 		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			intermediateLineYPosition = this.paper.height - this.valueToYPosition(decadeHeight, j, decadeBaseValue);
-			console.log('y Position for intermediate line '+ j + ' : ' + intermediateLineYPosition);
-			//draw each horizontal line
-			var hpath = "M " + lineStartX + " " + intermediateLineYPosition + " l " + lineEndX + " " + deltaY;
-			var drawHLine = this.paper.path(hpath);
-		}
-	}
+			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, decadeHeight, j * decadeBaseValue, decadeBaseValue);
 
+			console.log('y Position for intermediate line '+ j + ' : ' + intermediateLineYPosition);
+
+			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, '#000');
+		}
+		
+	}
 	return 'done';
 }
 
+
 // takes a value and coverts it to a y position on the chart
-Chart.prototype.valueToYPosition = function(decadeHeight, lineValue, decadeBaseValue) {
-	// Multiply decadeBaseValue by 100 to avoid negative exponents
-	var y = 10 + decadeHeight * (log10(lineValue/decadeBaseValue*100));
+Chart.prototype.valueToYPosition = function(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue) {
+	console.log('in valueToYPosition');
+
+	
+	var percentOfDecade = 1.0 * lineValue/decadeBaseValue;
+
+	console.log('decadePercent is ' + percentOfDecade);
+	console.log('baseLineYPosition is ' + baseLineYPosition);
+
+	var logDecadePercent = log10(percentOfDecade);
+
+	console.log('logDecadePercent is ' + logDecadePercent);
+
+	var offsetFromBase = decadeHeight * logDecadePercent;
+
+	console.log('offsetFromBase is ' + offsetFromBase);
+
+	var y = baseLineYPosition + offsetFromBase;
+
 	return y;
+}
+
+Chart.prototype.drawHorizontalLine = function(x1, x2, y, fill) {
+	console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
+	var deltaY = 0; // zero because we don't want the line to be slanted
+	
+	/* syntax (case-sensitive) for drawing a line in raphael is: 
+	 * M = move to start point
+	 * l = draw a line relative to this point
+	 */
+
+	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
+	console.log(basePath);
+
+	// add the line to the drawing area
+	var drawCommand = this.paper.path(basePath);
+
+	drawCommand.attr("stroke", fill);
 }
 
 // draw regularly spaced lines for the number of days in the chart
