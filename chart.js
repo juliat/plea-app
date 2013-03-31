@@ -8,7 +8,6 @@ function Chart() {
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
 	this.chartElement = $('#chart'); 
-	this.lineAttrs = {stroke: '#0000ff', 'stroke-width': 1};
 	this.init();
 }
 
@@ -16,7 +15,7 @@ function Chart() {
 Chart.prototype.init = function() {
 	var chartHeight = this.chartElement.height();
 	var chartWidth = this.chartElement.width() * 0.9;
-	this.leftMargin = this.chartELement.width() * 0.1;
+	this.leftMargin = this.chartElement.width() * 0.1;
 	var chartDOMElement = document.getElementById('chart');
 	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
 };
@@ -48,9 +47,19 @@ Chart.prototype.drawXAxis = function() {
 		var intermediateLineYPosition;
 		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, decadeHeight, j * decadeBaseValue, decadeBaseValue);
+			lineValue = j * decadeBaseValue;
 
-			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, '#000');
+			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue);
+			
+			var numDigits = 2;
+			var lineAttrs = {
+				'lineWeight': '0.5',
+				'lineColor' : '#0000ff',
+				'dataName' : 'value',
+				'dataValue' : lineValue.toFixed(numDigits) + '',
+			};
+
+			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
 		}
 	}
 	return 'done';
@@ -68,8 +77,8 @@ Chart.prototype.valueToYPosition = function(baseLineYPosition, decadeHeight, lin
 	return y;
 }
 
-Chart.prototype.drawHorizontalLine = function(x1, x2, y, fill) {
-	console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
+Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
+	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaY = 0; // zero because we don't want the line to be slanted
 	
 	/* syntax (case-sensitive) for drawing a line in raphael is: 
@@ -77,12 +86,24 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, fill) {
 	 * l = draw a line relative to this point
 	 */
 	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
-	console.log(basePath);
 
 	// add the line to the drawing area
-	var drawCommand = this.paper.path(basePath);
+	var line = this.paper.path(basePath);
 
-	drawCommand.attr("stroke", fill);
+	// get attrs to add to line. set to defaults if they're undefined
+	console.log(params);
+	var lineColor = params['color'] || '#000';
+	var lineWeight = params['weight'] || '1';
+	var dataName = params['dataName'] || '';
+ 	var dataValue = params['dataValue'] || '';
+
+	line.attr({"stroke-width": lineWeight,
+			   "fill": lineColor})
+		.data(dataName, dataValue)
+        .click(function () {
+            alert(this.data(dataName));
+         });
+
 }
 
 // draw regularly spaced lines for the number of days in the chart
