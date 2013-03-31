@@ -13,8 +13,8 @@ function Chart() {
 
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
 Chart.prototype.init = function() {
-	var chartHeight = this.chartElement.height();
-	var chartWidth = this.chartElement.width() * 0.95;
+	this.chartHeight = this.chartElement.height() * 0.9;
+	this.chartWidth = this.chartElement.width() * 0.95;
 	this.leftMargin = this.chartElement.width() * 0.05;
 	var chartDOMElement = document.getElementById('chart');
 	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
@@ -31,7 +31,7 @@ Chart.prototype.drawXAxis = function() {
 
 	// calculate height of a decade in pixels by dividing the chart height by
 	// the number of decades
-	var decadeHeight = this.chartElement.height() / this.numberOfDecades;
+	var decadeHeight = this.chartHeight / this.numberOfDecades;
 
 	/* a decade is the section between two exponents of ten on the chart. For example, a decade would be from 1-10 or 0.001-0.01. */
 	for (i = 0; i < this.numberOfDecades; i++) {
