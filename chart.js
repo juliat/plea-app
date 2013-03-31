@@ -11,13 +11,19 @@ function Chart() {
 	this.init();
 }
 
-/* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
+/* Initialize the chart */
 Chart.prototype.init = function() {
+	// get dimensions from jquery chartelement
 	var chartHeight = this.chartElement.height();
 	var chartWidth = this.chartElement.width() * 0.95;
 	this.leftMargin = this.chartElement.width() * 0.05;
+	// store dom element
 	var chartDOMElement = document.getElementById('chart');
+	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
+	// draw axes
+	this.drawXAxis();
+	this.drawYAxis();
 };
 
 // draws the lines on the x axis of the chart
@@ -32,6 +38,8 @@ Chart.prototype.drawXAxis = function() {
 	// calculate height of a decade in pixels by dividing the chart height by
 	// the number of decades
 	var decadeHeight = this.chartElement.height() / this.numberOfDecades;
+
+	var labelPadding = this.leftMargin * 0.25;
 
 	/* a decade is the section between two exponents of ten on the chart. For example, a decade would be from 1-10 or 0.001-0.01. */
 	for (i = 0; i < this.numberOfDecades; i++) {
@@ -49,10 +57,10 @@ Chart.prototype.drawXAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
+		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
 
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - 20, baseLineYPosition, decadeBaseValue);
+		this.drawLabel(lineStartX - labelPadding, baseLineYPosition, decadeBaseValue);
 
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
@@ -68,13 +76,14 @@ Chart.prototype.drawXAxis = function() {
 				'color' : '#0000ff',
 				'dataName' : 'value',
 				'dataValue' : lineValue.toFixed(numDigits) + '',
-				'decadeNumber': decadeNumber
+				'decadeNumber': decadeNumber.toFixed(numDigits) + '',
 			};
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
 
-			if (j == 5) {
-				this.drawLabel(lineStartX - 20, intermediateLineYPosition, j * decadeBaseValue);
+			// only draw labels on the fifth line in the decade (this is just how the chart is designed)
+			if (j === 5) {
+				this.drawLabel(lineStartX - labelPadding, intermediateLineYPosition, j * decadeBaseValue);
 			}
 		}
 	}
@@ -107,12 +116,10 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	
 	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
 
-	// debugger;
 	// add the line to the drawing area
 	var line = this.paper.path(basePath);
 
 	// get attrs to add to line. set to defaults if they're undefined
-	console.log(params);
 	var lineColor = params['color'] || '#000';
 	var lineWeight = params['weight'] || '1';
 	var dataName = params['dataName'] || '';
@@ -121,10 +128,9 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor})
-		.data({dataName: dataValue,
-			   'decadeNumber' : decadeNumber,
-		})
-        .click(function () {
+		.data(dataName, dataValue)
+		.data('decadeNumber', decadeNumber)
+        .click(function(){
             alert(this.data(dataName));
          });
 }
