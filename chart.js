@@ -38,7 +38,8 @@ Chart.prototype.drawXAxis = function() {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
 		// find the y position for the base value of the decade.
-		var baseLineYPosition = ((this.numberOfDecades - i)*decadeHeight);
+		var decadeNumber = this.numberOfDecades - i;
+		var baseLineYPosition = (decadeNumber*decadeHeight);
 
 		var lineAttrs = {
 			'weight': '1.5',
@@ -64,6 +65,7 @@ Chart.prototype.drawXAxis = function() {
 				'color' : '#0000ff',
 				'dataName' : 'value',
 				'dataValue' : lineValue.toFixed(numDigits) + '',
+				'decadeNumber': decadeNumber
 			};
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
@@ -106,10 +108,13 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	var lineWeight = params['weight'] || '1';
 	var dataName = params['dataName'] || '';
  	var dataValue = params['dataValue'] || '';
+ 	var decadeNumber = params['decadeNumber'] || 'decade number not defined';
 
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor})
-		.data(dataName, dataValue)
+		.data({dataName: dataValue,
+			   'decadeNumber' : decadeNumber,
+		})
         .click(function () {
             alert(this.data(dataName));
          });
@@ -129,13 +134,6 @@ Chart.prototype.drawHistoricalData = function() {
 
 }
 
-Chart.prototype.readPoint = function() {
-	// find decade
-	// find percent up decade
-	// do 10^percent up that decade
-	// multiply that by base value in the decade
-}
-
 // takes a point on the chart and converts it to a semantic numeric value
 Chart.prototype.pointToValue = function(decadeHeight, yPosition, decadeBaseValue) {
 	// get the base position (we're talking pixels) by using the value to position funciton on the base position
@@ -143,6 +141,13 @@ Chart.prototype.pointToValue = function(decadeHeight, yPosition, decadeBaseValue
 	var percentAwayFromVBase = (y - decadeBasePosition)/decadeHeight;
 	var value = decadeBaseValue - pow(10, percentAwayFromVBase);
 	return value;
+}
+
+Chart.prototype.readPoint = function() {
+	// find decade
+	// find percent up decade
+	// do 10^percent up that decade
+	// multiply that by base value in the decade
 }
 
 // note: for sooming maybe only draw decades
