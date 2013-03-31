@@ -15,7 +15,8 @@ function Chart() {
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
 Chart.prototype.init = function() {
 	var chartHeight = this.chartElement.height();
-	var chartWidth = this.chartElement.width();
+	var chartWidth = this.chartElement.width() * 0.9;
+	this.leftMargin = this.chartELement.width() * 0.1;
 	var chartDOMElement = document.getElementById('chart');
 	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
 };
@@ -26,7 +27,7 @@ Chart.prototype.drawXAxis = function() {
 	var i;
 
 	// these variables define the x positions for the start and end of each line
-	var lineStartX = 0;
+	var lineStartX = this.leftMargin;
 	var lineEndX = this.paper.width;
 
 	// calculate height of a decade in pixels by dividing the chart height by
@@ -52,7 +53,6 @@ Chart.prototype.drawXAxis = function() {
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, '#000');
 		}
-		
 	}
 	return 'done';
 }
@@ -62,8 +62,8 @@ Chart.prototype.drawXAxis = function() {
 Chart.prototype.valueToYPosition = function(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue) {
 	
 	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
-	var logDecadePercent = log10(decadeProportion);
-	var offsetFromBase = decadeHeight * logDecadePercent;
+	var logDecadeProportion = log10(decadeProportion);
+	var offsetFromBase = decadeHeight * logDecadeProportion;
 	var y = baseLineYPosition + offsetFromBase;
 
 	return y;
@@ -77,7 +77,6 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, fill) {
 	 * M = move to start point
 	 * l = draw a line relative to this point
 	 */
-
 	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
 	console.log(basePath);
 
