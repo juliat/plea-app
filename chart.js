@@ -133,7 +133,7 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 			   "stroke": lineColor})
 		.data(dataName, dataValue)
 		.data('decadeNumber', decadeNumber)
-        .click(function(){
+        .click(function () {
             alert(this.data(dataName));
          });
 }
@@ -157,6 +157,13 @@ Chart.prototype.drawYAxis = function() {
 // plot historical data on the chart (should call helper methods for plotting data points on each day)
 Chart.prototype.drawHistoricalData = function() {
 
+}
+
+Chart.prototype.readPoint = function() {
+	// find decade
+	// find percent up decade
+	// do 10^percent up that decade
+	// multiply that by base value in the decade
 }
 
 // takes a point on the chart and converts it to a semantic numeric value
