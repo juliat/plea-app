@@ -67,11 +67,17 @@ Chart.prototype.drawXAxis = function() {
 			};
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
+
+			this.paper.text(lineStartX - 20, intermediateLineYPosition, j * decadeBaseValue)
 		}
 	}
 	return 'done';
 }
 
+
+Chart.prototype.drawLabel = function(x, y, lineValue) {
+	this.paper.text(x, y, lineValue);
+}
 
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue) {
@@ -88,10 +94,6 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaY = 0; // zero because we don't want the line to be slanted
 	
-	/* syntax (case-sensitive) for drawing a line in raphael is: 
-	 * M = move to start point
-	 * l = draw a line relative to this point
-	 */
 	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
 
 	// debugger;
@@ -116,9 +118,8 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 // draw regularly spaced lines for the number of days in the chart
 Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
-	console.log(spacing);
 	for (var i = 0; i < this.numberOfDays; i++) {
-		var vpath = "M " + i*spacing + " 0 l 0 " + this.paper.height;
+		var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + this.paper.height;
 		var drawVLine = this.paper.path(vpath); 
 	}
 }
