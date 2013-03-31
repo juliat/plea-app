@@ -36,15 +36,10 @@ Chart.prototype.drawXAxis = function() {
 	/* a decade is the section between two exponents of ten on the chart. For example, a decade would be from 1-10 or 0.001-0.01. */
 	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
-		
-		// just logging to check the values
-		console.log('decade base value for decade ' + i + ' is ' + decadeBaseValue);
 
 		// find the y position for the base value of the decade.
 		var baseLineYPosition = (i*decadeHeight);
 		
-		console.log('baseLineYPosition is '+baseLineYPosition);
-
 		// draw the baseValue line on the chart for this decade
 		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
 
@@ -54,8 +49,6 @@ Chart.prototype.drawXAxis = function() {
 		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
 			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, decadeHeight, j * decadeBaseValue, decadeBaseValue);
-
-			console.log('y Position for intermediate line '+ j + ' : ' + intermediateLineYPosition);
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, '#000');
 		}
@@ -67,22 +60,10 @@ Chart.prototype.drawXAxis = function() {
 
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue) {
-	console.log('in valueToYPosition');
-
 	
-	var percentOfDecade = 1.0 * lineValue/decadeBaseValue;
-
-	console.log('decadePercent is ' + percentOfDecade);
-	console.log('baseLineYPosition is ' + baseLineYPosition);
-
-	var logDecadePercent = log10(percentOfDecade);
-
-	console.log('logDecadePercent is ' + logDecadePercent);
-
+	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
+	var logDecadePercent = log10(decadeProportion);
 	var offsetFromBase = decadeHeight * logDecadePercent;
-
-	console.log('offsetFromBase is ' + offsetFromBase);
-
 	var y = baseLineYPosition + offsetFromBase;
 
 	return y;
