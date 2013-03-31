@@ -16,7 +16,7 @@ function Chart() {
 Chart.prototype.init = function() {
 	var chartHeight = this.chartElement.height();
 	var chartWidth = this.chartElement.width() * 0.9;
-	this.leftMargin = this.chartELement.width() * 0.1;
+	this.leftMargin = this.chartElement.width() * 0.1;
 	var chartDOMElement = document.getElementById('chart');
 	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
 };
@@ -43,7 +43,10 @@ Chart.prototype.drawXAxis = function() {
 		
 		// draw the baseValue line on the chart for this decade
 		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
-		
+
+		// writes the number label for the grid line
+		this.paper.text(lineStartX -)
+
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
 		for (var j = 2; j < 10; j++) {
@@ -51,11 +54,18 @@ Chart.prototype.drawXAxis = function() {
 			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, decadeHeight, j * decadeBaseValue, decadeBaseValue);
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, '#000');
+
+			if()
+			this.paper.text(lineStartX - 20, intermediateLineYPosition, j * decadeBaseValue)
 		}
 	}
 	return 'done';
 }
 
+
+Chart.prototype.drawLabel = function(x, y, lineValue) {
+	this.paper.text(x, y, lineValue);
+}
 
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue) {
@@ -72,10 +82,6 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, fill) {
 	console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaY = 0; // zero because we don't want the line to be slanted
 	
-	/* syntax (case-sensitive) for drawing a line in raphael is: 
-	 * M = move to start point
-	 * l = draw a line relative to this point
-	 */
 	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
 	console.log(basePath);
 
@@ -88,9 +94,8 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, fill) {
 // draw regularly spaced lines for the number of days in the chart
 Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
-	console.log(spacing);
 	for (var i = 0; i < this.numberOfDays; i++) {
-		var vpath = "M " + i*spacing + " 0 l 0 " + this.paper.height;
+		var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + this.paper.height;
 		var drawVLine = this.paper.path(vpath); 
 	}
 }
