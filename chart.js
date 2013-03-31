@@ -13,7 +13,7 @@ function Chart() {
 
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
 Chart.prototype.init = function() {
-	this.paper = new Raphael(document.getElementById('chart'), 800, 800);
+	this.paper = new Raphael(document.getElementById('chart'), 800, 500);
 };
 
 Chart.prototype.drawXAxis = function() {
@@ -35,7 +35,7 @@ Chart.prototype.drawXAxis = function() {
 
 		// draw the guide for the high value
 		var highLine = this.paper.height - this.valueToYPosition(decadeHeight, 10, decadeBaseValue);
-		var highPath = "M 0 " + highLine + " l " + this.paper.width + " 10";
+		var highPath = "M 0 " + highLine + " l " + this.paper.width + " 0";
 		var drawHighLine = this.paper.path(highPath);
 		console.log(highLine);
 
