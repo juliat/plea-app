@@ -19,13 +19,13 @@ function Chart() {
 /* Initialize the chart */
 Chart.prototype.init = function() {
 	// get dimensions from jquery chartelement
-	var chartHeight = this.chartElement.height();
-	var chartWidth = this.chartElement.width() * 0.95;
-	this.leftMargin = this.chartElement.width() * 0.05;
+	this.chartHeight = this.chartElement.height();
+	this.chartWidth = this.chartElement.width() * 0.95;
+	this.leftMargin = this.chartWidth * 0.05;
 	// store dom element
 	var chartDOMElement = document.getElementById('chart');
 	// create a raphael 'paper' drawing area
-	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
+	this.paper = new Raphael(chartDOMElement, this.chartWidth, this.chartHeight);
 	// draw axes
 	this.drawXAxis();
 	this.drawYAxis();
@@ -127,7 +127,7 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	var lineWeight = params['weight'] || '1';
 	var dataName = params['dataName'] || '';
  	var dataValue = params['dataValue'] || '';
- 	var decadeNumber = params['decadeNumber'] || 'decade number not defined';
+ 	var decadeNumber = params['decadeNumber'] || 'julia says decade number not defined';
 
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor})
@@ -146,8 +146,10 @@ Chart.prototype.drawYAxis = function() {
 		var line = this.paper.path(vpath); 
 		var chart = this;
 		line.click(function(event){
-			y = event.y;
-			value = chart.pointToValue(y);
+			var y = chart.chartHeight - event.y;
+			console.log(event.y);
+			console.log('y is ' + y);
+			var value = chart.pointToValue(y);
 		})
 	}
 }
@@ -160,20 +162,19 @@ Chart.prototype.drawHistoricalData = function() {
 // takes a point on the chart and converts it to a semantic numeric value
 Chart.prototype.pointToValue = function(yPosition) {
 	// get the base position (we're talking pixels) by using the value to position funciton on the base position
-	this.findDecade(y);
+	var decadeNumber = this.findDecade(yPosition);
 	var decadeBasePosition = decadeNumber * this.decadeHeight;
-	// decadeBaseValue = 
-	var percentAwayFromVBase = (y - decadeBasePosition)/this.decadeHeight;
-	var value = decadeBaseValue - pow(10, percentAwayFromVBase);
+	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
+	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
+	var value = decadeBaseValue * Math.pow(10, percentAwayFromVBase);
+	console.log('value ' + value);
 	return value;
 }
 
 Chart.prototype.findDecade = function(point) {
- for (i = 0; i < this.decadeLocations - 1; i++) {
- 	thisDecadeStart = this.decadeLocations[i];
- 	nextDecadeStart = this.decadeLocations[i+1];
- 	this.decadeLocations;
- }
+	var decadeNumber = Math.floor(point/this.decadeHeight);
+	console.log(decadeNumber);
+	return decadeNumber;
 }
 
 Chart.prototype.readPoint = function() {
