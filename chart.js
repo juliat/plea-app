@@ -38,7 +38,7 @@ Chart.prototype.drawXAxis = function() {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
 		// find the y position for the base value of the decade.
-		var baseLineYPosition = (i*decadeHeight);
+		var baseLineYPosition = ((this.numberOfDecades - i)*decadeHeight);
 
 		var lineAttrs = {
 			'weight': '1.5',
