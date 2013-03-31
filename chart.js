@@ -43,7 +43,6 @@ Chart.prototype.drawXAxis = function() {
 		
 		// draw the baseValue line on the chart for this decade
 		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
-
 		
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
