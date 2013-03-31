@@ -14,8 +14,8 @@ function Chart() {
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
 Chart.prototype.init = function() {
 	var chartHeight = this.chartElement.height();
-	var chartWidth = this.chartElement.width() * 0.9;
-	this.leftMargin = this.chartElement.width() * 0.1;
+	var chartWidth = this.chartElement.width() * 0.95;
+	this.leftMargin = this.chartElement.width() * 0.05;
 	var chartDOMElement = document.getElementById('chart');
 	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
 };
@@ -49,8 +49,11 @@ Chart.prototype.drawXAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
-		
+		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
+
+		// writes the number label for the grid line
+		this.drawLabel(lineStartX - 20, baseLineYPosition, decadeBaseValue);
+
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
 		for (var j = 2; j < 10; j++) {
@@ -70,7 +73,9 @@ Chart.prototype.drawXAxis = function() {
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
 
-			this.paper.text(lineStartX - 20, intermediateLineYPosition, j * decadeBaseValue)
+			if (j == 5) {
+				this.drawLabel(lineStartX - 20, intermediateLineYPosition, j * decadeBaseValue);
+			}
 		}
 	}
 	return 'done';
@@ -78,7 +83,11 @@ Chart.prototype.drawXAxis = function() {
 
 
 Chart.prototype.drawLabel = function(x, y, lineValue) {
-	this.paper.text(x, y, lineValue);
+	var label = this.paper.text(x, y, lineValue);
+	label.attr({
+		'font-size': 15,
+		'fill': '#0000ff'
+	});
 }
 
 // takes a value and coverts it to a y position on the chart
