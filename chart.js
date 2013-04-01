@@ -27,6 +27,7 @@ Chart.prototype.init = function() {
 
 	// store dom element
 	var drawDOMElement = document.getElementById('draw');
+
 	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
 
@@ -149,12 +150,30 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
 	var labelPadding = this.bottomMargin * 0.25;
+	var lineStartY = this.leftMargin;
+	var lineEndY = this.leftMargin;
 	for (var i = 0; i < this.numberOfDays; i++) {
 		var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
 		var line = this.paper.path(vpath); 
+		var lineAttrs = {
+			'weight': '1.5',
+			'color' : '#0000ff',
+			'dataName' : 'value',
+			'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
+		};
+		
+		// draw the baseValue line on the chart for this decade
+		this.drawVerticalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
+
 		var chart = this;
-		if (i%7 === 0) {
+		if (i%14 === 0) {
 			this.drawLabel(this.leftMargin + i*spacing, this.paper.height - this.bottomMargin + labelPadding, i);
+		}
+
+		if (i%7 === 0) {
+			line.attr({
+				"stroke-width": lineWeight,
+			})
 		}
 		line.click(function(event){
 			var y = chart.chartHeight - event.y;
@@ -163,6 +182,31 @@ Chart.prototype.drawYAxis = function() {
 			var value = chart.pointToValue(y);
 		})
 	}
+}
+
+Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
+	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
+	var deltaX = 0; // zero because we don't want the line to be slanted
+	
+	var basePath = "M " + x + ' ' + y1 + " l " + deltaX + ' ' + y2;
+
+	// add the line to the drawing area
+	var line = this.paper.path(basePath);
+
+	// get attrs to add to line. set to defaults if they're undefined
+	var lineColor = params['color'] || '#000';
+	var lineWeight = params['weight'] || '1';
+	var dataName = params['dataName'] || '';
+ 	var dataValue = params['dataValue'] || '';
+ 	var decadeNumber = params['decadeNumber'] || 'julia saysdecade number not defined';
+
+	line.attr({"stroke-width": lineWeight,
+			   "stroke": lineColor})
+		.data(dataName, dataValue)
+		.data('decadeNumber', decadeNumber)
+        .click(function () {
+            alert(this.data(dataName));
+         });
 }
 
 // plot historical data on the chart (should call helper methods for plotting data points on each day)
