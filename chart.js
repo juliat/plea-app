@@ -8,16 +8,27 @@ function Chart() {
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
 	this.chartElement = $('#chart'); 
+	// calculate height of a decade in pixels by dividing the chart height by
+	// the number of decades
+	this.decadeHeight = this.chartElement.height() / this.numberOfDecades;
+	this.decadeLocations = []; 
+	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
 	this.init();
 }
 
-/* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
+/* Initialize the chart */
 Chart.prototype.init = function() {
-	var chartHeight = this.chartElement.height();
-	var chartWidth = this.chartElement.width() * 0.95;
-	this.leftMargin = this.chartElement.width() * 0.05;
+	// get dimensions from jquery chartelement
+	this.chartHeight = this.chartElement.height();
+	this.chartWidth = this.chartElement.width() * 0.95;
+	this.leftMargin = this.chartWidth * 0.05;
+	// store dom element
 	var chartDOMElement = document.getElementById('chart');
-	this.paper = new Raphael(chartDOMElement, chartWidth, chartHeight);
+	// create a raphael 'paper' drawing area
+	this.paper = new Raphael(chartDOMElement, this.chartWidth, this.chartHeight);
+	// draw axes
+	this.drawXAxis();
+	this.drawYAxis();
 };
 
 // draws the lines on the x axis of the chart
@@ -29,16 +40,17 @@ Chart.prototype.drawXAxis = function() {
 	var lineStartX = this.leftMargin;
 	var lineEndX = this.paper.width;
 
-	// calculate height of a decade in pixels by dividing the chart height by
-	// the number of decades
-	var decadeHeight = this.chartElement.height() / this.numberOfDecades;
+	var labelPadding = this.leftMargin * 0.25;
 
 	/* a decade is the section between two exponents of ten on the chart. For example, a decade would be from 1-10 or 0.001-0.01. */
 	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
 		// find the y position for the base value of the decade.
-		var baseLineYPosition = ((this.numberOfDecades - i)*decadeHeight);
+		var decadeNumber = this.numberOfDecades - i;
+		var baseLineYPosition = (decadeNumber * this.decadeHeight);
+
+		this.decadeLocations.push(baseLineYPosition);
 
 		var lineAttrs = {
 			'weight': '1.5',
@@ -48,10 +60,10 @@ Chart.prototype.drawXAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, '#0000ff');
+		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
 
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - 20, baseLineYPosition, decadeBaseValue);
+		this.drawLabel(lineStartX - labelPadding, baseLineYPosition, decadeBaseValue);
 
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
@@ -59,7 +71,7 @@ Chart.prototype.drawXAxis = function() {
 			// solve equation where value equals two to nine, then multiply by base of the decade
 			lineValue = j * decadeBaseValue;
 
-			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue);
+			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
 
 			var numDigits = 3;
 			lineAttrs = {
@@ -67,12 +79,14 @@ Chart.prototype.drawXAxis = function() {
 				'color' : '#0000ff',
 				'dataName' : 'value',
 				'dataValue' : lineValue.toFixed(numDigits) + '',
+				'decadeNumber': decadeNumber.toFixed(numDigits) + '',
 			};
 
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
 
-			if (j == 5) {
-				this.drawLabel(lineStartX - 20, intermediateLineYPosition, j * decadeBaseValue);
+			// only draw labels on the fifth line in the decade (this is just how the chart is designed)
+			if (j === 5) {
+				this.drawLabel(lineStartX - labelPadding, intermediateLineYPosition, j * decadeBaseValue);
 			}
 		}
 	}
@@ -89,11 +103,11 @@ Chart.prototype.drawLabel = function(x, y, lineValue) {
 }
 
 // takes a value and coverts it to a y position on the chart
-Chart.prototype.valueToYPosition = function(baseLineYPosition, decadeHeight, lineValue, decadeBaseValue) {
-	
+Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decadeBaseValue) {
+
 	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
 	var logDecadeProportion = log10(decadeProportion);
-	var offsetFromBase = decadeHeight * logDecadeProportion;
+	var offsetFromBase = this.decadeHeight * logDecadeProportion;
 	var y = baseLineYPosition + offsetFromBase;
 
 	return y;
@@ -105,20 +119,20 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	
 	var basePath = "M " + x1 + ' ' + y + " l " + x2 + ' ' + deltaY;
 
-	// debugger;
 	// add the line to the drawing area
 	var line = this.paper.path(basePath);
 
 	// get attrs to add to line. set to defaults if they're undefined
-	console.log(params);
 	var lineColor = params['color'] || '#000';
 	var lineWeight = params['weight'] || '1';
 	var dataName = params['dataName'] || '';
  	var dataValue = params['dataValue'] || '';
+ 	var decadeNumber = params['decadeNumber'] || 'julia says decade number not defined';
 
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor})
 		.data(dataName, dataValue)
+		.data('decadeNumber', decadeNumber)
         .click(function () {
             alert(this.data(dataName));
          });
@@ -129,7 +143,14 @@ Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
 	for (var i = 0; i < this.numberOfDays; i++) {
 		var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + this.paper.height;
-		var drawVLine = this.paper.path(vpath); 
+		var line = this.paper.path(vpath); 
+		var chart = this;
+		line.click(function(event){
+			var y = chart.chartHeight - event.y;
+			console.log(event.y);
+			console.log('y is ' + y);
+			var value = chart.pointToValue(y);
+		})
 	}
 }
 
@@ -146,12 +167,28 @@ Chart.prototype.readPoint = function() {
 }
 
 // takes a point on the chart and converts it to a semantic numeric value
-Chart.prototype.pointToValue = function(decadeHeight, yPosition, decadeBaseValue) {
+Chart.prototype.pointToValue = function(yPosition) {
 	// get the base position (we're talking pixels) by using the value to position funciton on the base position
-	var decadeBasePosition = this.valueToYPosition(decadeHeight, decadeBaseValue, decadeBaseValue);
-	var percentAwayFromVBase = (y - decadeBasePosition)/decadeHeight;
-	var value = decadeBaseValue - pow(10, percentAwayFromVBase);
+	var decadeNumber = this.findDecade(yPosition);
+	var decadeBasePosition = decadeNumber * this.decadeHeight;
+	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
+	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
+	var value = decadeBaseValue * Math.pow(10, percentAwayFromVBase);
+	console.log('value ' + value);
 	return value;
+}
+
+Chart.prototype.findDecade = function(point) {
+	var decadeNumber = Math.floor(point/this.decadeHeight);
+	console.log(decadeNumber);
+	return decadeNumber;
+}
+
+Chart.prototype.readPoint = function() {
+	// find decade
+	// find percent up decade
+	// do 10^percent up that decade
+	// multiply that by base value in the decade
 }
 
 // note: for sooming maybe only draw decades
