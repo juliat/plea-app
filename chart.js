@@ -8,10 +8,6 @@ function Chart() {
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
 	this.drawElement = $('#draw'); 
-	// calculate height of a decade in pixels by dividing the chart height by
-	// the number of decades
-	this.decadeHeight = this.drawElement.height()* 0.95 / this.numberOfDecades;
-	this.decadeLocations = []; 
 	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
 	this.init();
 }
@@ -21,8 +17,13 @@ Chart.prototype.init = function() {
 	// get dimensions from jquery drawElement
 	this.bottomMargin = this.drawElement.height() * 0.05;
 	this.chartHeight = this.drawElement.height() - this.bottomMargin;
+	console.log('chartHeight is ' + this.chartHeight);
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.chartWidth = this.drawElement.width() - this.leftMargin;
+
+	// calculate height of a decade in pixels by dividing the chart height by
+	// the number of decades
+	this.decadeHeight = this.chartHeight * 0.95 / this.numberOfDecades;
 
 	// store dom element
 	var drawDOMElement = document.getElementById('draw');
@@ -54,8 +55,6 @@ Chart.prototype.drawXAxis = function() {
 		var decadeNumber = this.numberOfDecades - i;
 		var baseLineYPosition = (decadeNumber * this.decadeHeight);
 
-		this.decadeLocations.push(baseLineYPosition);
-
 		var lineAttrs = {
 			'weight': '1.5',
 			'color' : '#0000ff',
@@ -77,9 +76,9 @@ Chart.prototype.drawXAxis = function() {
 
 			// with coordinates from bottom up instead of top down
 			var reverseYPosition = this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
-			console.log(intermediateLineYPosition);
+			console.log('reverseYPosition ' + reverseYPosition);
 			intermediateLineYPosition = this.chartHeight - reverseYPosition;
-			console.log(intermediateLineYPosition);
+			console.log('intermediateLineYPosition ' + intermediateLineYPosition);
 
 			var numDigits = 3;
 			lineAttrs = {
