@@ -151,20 +151,20 @@ Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
 	var labelPadding = this.bottomMargin * 0.25;
 	var lineStartY = 0;
-	var lineEndY = this.paper.height;
+	var lineEndY = this.paper.height - this.bottomMargin;
 	var baseXPosition = this.leftMargin;
 	for (var i = 0; i < this.numberOfDays; i++) {
 		//var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
 		//var line = this.paper.path(vpath); 
 		var lineAttrs = {
-			'weight': '1.5',
+			'weight': '1',
 			'color' : '#0000ff',
 			'dataName' : 'value',
-			'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
+			//'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawVerticalLine(baseXPosition, lineStartY, lineEndY, lineAttrs);
+		this.drawVerticalLine(baseXPosition + i*spacing, lineStartY, lineEndY, lineAttrs);
 
 		var chart = this;
 		if (i%14 === 0) {
@@ -174,12 +174,12 @@ Chart.prototype.drawYAxis = function() {
 		if (i%7 === 0) {
 			//
 		}
-		line.click(function(event){
+		/*line.click(function(event){
 			var y = chart.chartHeight - event.y;
 			console.log(event.y);
 			console.log('y is ' + y);
 			var value = chart.pointToValue(y);
-		})
+		})*/
 	}
 }
 
@@ -201,6 +201,13 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
 
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor});
+
+	line.click(function(event){
+		var y = chart.chartHeight - event.y;
+		console.log(event.y);
+		console.log('y is ' + y);
+		var value = chart.pointToValue(y);
+	});
 }
 
 // plot historical data on the chart (should call helper methods for plotting data points on each day)
