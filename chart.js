@@ -154,11 +154,12 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
 	var labelPadding = this.bottomMargin * 0.25;
-	var lineStartY = this.leftMargin;
-	var lineEndY = this.leftMargin;
+	var lineStartY = 0;
+	var lineEndY = this.paper.height;
+	var baseXPosition = this.leftMargin;
 	for (var i = 0; i < this.numberOfDays; i++) {
-		var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
-		var line = this.paper.path(vpath); 
+		//var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
+		//var line = this.paper.path(vpath); 
 		var lineAttrs = {
 			'weight': '1.5',
 			'color' : '#0000ff',
@@ -167,7 +168,7 @@ Chart.prototype.drawYAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawVerticalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
+		this.drawVerticalLine(baseXPosition, lineStartY, lineEndY, lineAttrs);
 
 		var chart = this;
 		if (i%14 === 0) {
@@ -175,9 +176,7 @@ Chart.prototype.drawYAxis = function() {
 		}
 
 		if (i%7 === 0) {
-			line.attr({
-				"stroke-width": lineWeight,
-			})
+			//
 		}
 		line.click(function(event){
 			var y = chart.chartHeight - event.y;
@@ -205,12 +204,7 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
  	var decadeNumber = params['decadeNumber'] || 'julia saysdecade number not defined';
 
 	line.attr({"stroke-width": lineWeight,
-			   "stroke": lineColor})
-		.data(dataName, dataValue)
-		.data('decadeNumber', decadeNumber)
-        .click(function () {
-            alert(this.data(dataName));
-         });
+			   "stroke": lineColor});
 }
 
 // plot historical data on the chart (should call helper methods for plotting data points on each day)
