@@ -52,7 +52,7 @@ Chart.prototype.drawXAxis = function() {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
 		// find the y position for the base value of the decade.
-		var decadeNumber = this.numberOfDecades - i;
+		var decadeNumber = i;
 		var baseLineYPosition = (decadeNumber * this.decadeHeight);
 
 		var lineAttrs = {
@@ -75,10 +75,11 @@ Chart.prototype.drawXAxis = function() {
 			var lineValue = j * decadeBaseValue;
 
 			// with coordinates from bottom up instead of top down
+			console.log('baseLineYPosition ' + baseLineYPosition);
 			var reverseYPosition = this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
 			console.log('reverseYPosition ' + reverseYPosition);
 			intermediateLineYPosition = this.chartHeight - reverseYPosition;
-			console.log('intermediateLineYPosition ' + intermediateLineYPosition);
+			console.log('intermediateLineYPosition = ' + this.chartHeight + ' - ' + reverseYPosition + ' = ' + intermediateLineYPosition);
 
 			var numDigits = 3;
 			lineAttrs = {
@@ -101,18 +102,21 @@ Chart.prototype.drawXAxis = function() {
 }
 
 
-Chart.prototype.drawLabel = function(x, y, lineValue) {
+Chart.prototype.drawLabel = function(x, y, lineValue, textAnchor) {
 	var label = this.paper.text(x, y, lineValue);
 	label.attr({
 		'font-size': 15,
 		'fill': '#0000ff'
 	});
-	label.attr({'text-anchor': 'start'});
+	// default text align
+	var textAlign = textAnchor || 'start';
+	label.attr({'text-anchor': textAnchor});
 }
 
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decadeBaseValue) {
 
+	debugger;
 	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
 	var logDecadeProportion = log10(decadeProportion);
 	var offsetFromBase = this.decadeHeight * logDecadeProportion;
