@@ -10,7 +10,7 @@ function Chart() {
 	this.chartElement = $('#chart'); 
 	// calculate height of a decade in pixels by dividing the chart height by
 	// the number of decades
-	this.decadeHeight = this.chartElement.height() / this.numberOfDecades;
+	this.decadeHeight = this.chartElement.height()* 0.95 / this.numberOfDecades;
 	this.decadeLocations = []; 
 	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
 	this.init();
@@ -22,6 +22,7 @@ Chart.prototype.init = function() {
 	this.chartHeight = this.chartElement.height();
 	this.chartWidth = this.chartElement.width() * 0.95;
 	this.leftMargin = this.chartWidth * 0.05;
+	this.bottomMargin = this.chartHeight * 0.05;
 	// store dom element
 	var chartDOMElement = document.getElementById('chart');
 	// create a raphael 'paper' drawing area
@@ -71,7 +72,7 @@ Chart.prototype.drawXAxis = function() {
 			// solve equation where value equals two to nine, then multiply by base of the decade
 			lineValue = j * decadeBaseValue;
 
-			intermediateLineYPosition = this.paper.height - this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
+			intermediateLineYPosition = this.paper.height - this.bottomMargin - this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
 
 			var numDigits = 3;
 			lineAttrs = {
@@ -141,10 +142,14 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 // draw regularly spaced lines for the number of days in the chart
 Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
+	var labelPadding = this.bottomMargin * 0.25;
 	for (var i = 0; i < this.numberOfDays; i++) {
-		var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + this.paper.height;
+		var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
 		var line = this.paper.path(vpath); 
 		var chart = this;
+		if (i%7 === 0) {
+			this.drawLabel(this.leftMargin + i*spacing, this.paper.height - this.bottomMargin + labelPadding, i);
+		}
 		line.click(function(event){
 			var y = chart.chartHeight - event.y;
 			console.log(event.y);
