@@ -13,7 +13,7 @@ function Chart() {
 
 /* Setup a new Kinetic.js Stage (which can contain multiple HTML5 canvases) */
 Chart.prototype.init = function() {
-	var chartHeight = this.chartElement.height() * 0.9;
+	var chartHeight = this.chartElement.height();
 	var chartWidth = this.chartElement.width() * 0.95;
 	this.leftMargin = this.chartElement.width() * 0.05;
 	var chartDOMElement = document.getElementById('chart');
