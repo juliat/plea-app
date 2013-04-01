@@ -7,10 +7,10 @@ function Chart() {
 	this.minExponent = -3;
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
-	this.drawElement = $('#chart'); 
+	this.drawElement = $('#draw'); 
 	// calculate height of a decade in pixels by dividing the chart height by
 	// the number of decades
-	this.decadeHeight = this.chartElement.height()* 0.95 / this.numberOfDecades;
+	this.decadeHeight = this.drawElement.height()* 0.95 / this.numberOfDecades;
 	this.decadeLocations = []; 
 	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
 	this.init();
@@ -18,15 +18,18 @@ function Chart() {
 
 /* Initialize the chart */
 Chart.prototype.init = function() {
-	// get dimensions from jquery chartelement
+	// get dimensions from jquery drawElement
 	this.bottomMargin = this.drawElement.height() * 0.05;
 	this.chartHeight = this.drawElement.height() - this.bottomMargin;
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.chartWidth = this.drawElement.width() - this.leftMargin;
+
 	// store dom element
-	var chartDOMElement = document.getElementById('chart');
+	var drawDOMElement = document.getElementById('draw');
+
 	// create a raphael 'paper' drawing area
-	this.paper = new Raphael(chartDOMElement, this.chartElement.width(), this.chartElement.height());
+	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
+
 	// draw axes
 	this.drawXAxis();
 	this.drawYAxis();
@@ -70,9 +73,13 @@ Chart.prototype.drawXAxis = function() {
 		var intermediateLineYPosition;
 		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			lineValue = j * decadeBaseValue;
+			var lineValue = j * decadeBaseValue;
 
-			intermediateLineYPosition = this.paper.height - this.bottomMargin - this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
+			// with coordinates from bottom up instead of top down
+			var reverseYPosition = this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
+			console.log(intermediateLineYPosition);
+			intermediateLineYPosition = this.chartHeight - reverseYPosition;
+			console.log(intermediateLineYPosition);
 
 			var numDigits = 3;
 			lineAttrs = {
@@ -87,7 +94,7 @@ Chart.prototype.drawXAxis = function() {
 
 			// only draw labels on the fifth line in the decade (this is just how the chart is designed)
 			if (j === 5) {
-				this.drawLabel(lineStartX - labelPadding, intermediateLineYPosition, j * decadeBaseValue);
+				this.drawLabel(lineStartX - labelPadding, intermediateLineYPosition, lineValue);
 			}
 		}
 	}
@@ -101,6 +108,7 @@ Chart.prototype.drawLabel = function(x, y, lineValue) {
 		'font-size': 15,
 		'fill': '#0000ff'
 	});
+	label.attr({'text-anchor': 'start'});
 }
 
 // takes a value and coverts it to a y position on the chart
