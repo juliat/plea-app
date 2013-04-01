@@ -54,6 +54,7 @@ Chart.prototype.drawXAxis = function() {
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
 		var baseLineYPosition = (decadeNumber * this.decadeHeight);
+		var reversePosition = this.valueToYPosition(baseLineYPosition, decadeBaseValue, decadeBaseValue);
 
 		var lineAttrs = {
 			'weight': '1.5',
@@ -63,10 +64,10 @@ Chart.prototype.drawXAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
+		this.drawHorizontalLine(lineStartX, lineEndX, this.chartHeight - reversePosition, lineAttrs);
 
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - labelPadding, baseLineYPosition, decadeBaseValue);
+		this.drawLabel(lineStartX - labelPadding, this.chartHeight - reversePosition, decadeBaseValue);
 
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
@@ -116,7 +117,6 @@ Chart.prototype.drawLabel = function(x, y, lineValue, textAnchor) {
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decadeBaseValue) {
 
-	debugger;
 	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
 	var logDecadeProportion = log10(decadeProportion);
 	var offsetFromBase = this.decadeHeight * logDecadeProportion;
