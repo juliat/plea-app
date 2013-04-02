@@ -16,12 +16,14 @@ function Chart() {
 Chart.prototype.init = function() {
 	// get dimensions from jquery drawElement
 	this.bottomMargin = this.drawElement.height() * 0.05;
-	this.chartHeight = this.drawElement.height() - this.bottomMargin;
+	this.topMargin = this.drawElement.height() * 0.05;
+	this.chartHeight = this.drawElement.height() - (this.bottomMargin + this.topMargin);
 	
 	console.log('chartHeight is ' + this.chartHeight);
 	
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.chartWidth = this.drawElement.width() - this.leftMargin;
+	this.labelPadding = this.leftMargin * 0.25;
 
 	// calculate height of a decade in pixels by dividing the chart height by
 	// the number of decades
@@ -45,21 +47,21 @@ Chart.prototype.drawXAxis = function() {
 
 	// these variables define the x positions for the start and end of each line
 	var lineStartX = this.leftMargin;
-	var lineEndX = this.paper.width;
-
-	var labelPadding = this.leftMargin * 0.25;
+	var lineEndX = this.chartWidth;
 
 	/* a decade is the section between two exponents of ten on the chart. For example, a decade would be from 1-10 or 0.001-0.01. */
 	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
+		debugger;
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
-		console.log('drawing decade number ' + decadeNumber);
+		console.log('drawing decade number ' + decadeNumber + ' for base value ' + decadeBaseValue);
 
-		var baseLineYPosition = this.chartHeight - (decadeNumber * this.decadeHeight);
-		console.log('baseLineYPosition is ' + baseLineYPosition);
+		var decadeBasePosition = this.chartHeight - (decadeNumber * this.decadeHeight) + this.topMargin;
+		console.log('decadeBasePosition is ' + decadeBasePosition);
 
+		var numDigits = 3;
 		var lineAttrs = {
 			'weight': '1.5',
 			'color' : '#0000ff',
@@ -68,39 +70,44 @@ Chart.prototype.drawXAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
+		this.drawHorizontalLine(lineStartX, lineEndX, decadeBasePosition, lineAttrs);
 
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - labelPadding, baseLineYPosition, decadeBaseValue);
+		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue);
 
-		// get y positions for and draw lines for values in between the high and the low
-		var intermediateLineYPosition;
-		for (var j = 2; j < 10; j++) {
-			// solve equation where value equals two to nine, then multiply by base of the decade
-			var lineValue = j * decadeBaseValue;
-
-			console.log('baseLineYPosition ' + baseLineYPosition);
-			intermediateLineYPosition = this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
-			console.log('intermediateLineYPosition = ' + intermediateLineYPosition);
-
-			var numDigits = 3;
-			lineAttrs = {
-				'weight': '0.5',
-				'color' : '#0000ff',
-				'dataName' : 'value',
-				'dataValue' : lineValue.toFixed(numDigits) + '',
-				'decadeNumber': decadeNumber.toFixed(numDigits) + '',
-			};
-
-			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
-
-			// only draw labels on the fifth line in the decade (this is just how the chart is designed)
-			if (j === 5) {
-				this.drawLabel(lineStartX - labelPadding, intermediateLineYPosition, lineValue);
-			}
-		}
+		this.drawIntermediateLines(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX)
 	}
 	return 'done';
+}
+
+// get y positions for and draw lines for values in between the high and the low
+Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX) {
+	var intermediateLineYPosition;
+	for (var j = 2; j < 10; j++) {
+		// solve equation where value equals two to nine, then multiply by base of the decade
+		var lineValue = j * decadeBaseValue;
+
+		console.log('baseLineYPosition ' + decadeBasePosition);
+		intermediateLineYPosition = this.valueToYPosition(decadeBasePosition, lineValue, decadeBaseValue);
+		console.log('intermediateLineYPosition = ' + intermediateLineYPosition);
+
+		var numDigits = 3;
+		
+		lineAttrs = {
+			'weight': '0.5',
+			'color' : '#0000ff',
+			'dataName' : 'value',
+			'dataValue' : lineValue.toFixed(numDigits) + '',
+			'decadeNumber': decadeNumber.toFixed(numDigits) + '',
+		};
+
+		this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
+
+		// only draw labels on the fifth line in the decade (this is just how the chart is designed)
+		if (j === 5) {
+			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue);
+		}
+	}
 }
 
 
@@ -120,10 +127,10 @@ Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decade
 	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
 	var logDecadeProportion = log10(decadeProportion);
 	var offsetFromBase = this.decadeHeight * logDecadeProportion;
-	var y = baseLineYPosition + offsetFromBase;
+	var y = baseLineYPosition - offsetFromBase;
 
-	var flippedY = this.chartHeight - y;
-	return flippedY;
+	// var flippedY = (this.chartHeight - y) - this.topMargin;
+	return y;
 }
 
 
@@ -156,8 +163,8 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 Chart.prototype.drawYAxis = function() {
 	var spacing = this.paper.width/this.numberOfDays;
 	var labelPadding = this.bottomMargin * 0.25;
-	var lineStartY = 0;
-	var lineEndY = this.paper.height - this.bottomMargin;
+	var lineStartY = this.topMargin;
+	var lineEndY = this.chartHeight - this.bottomMargin;
 	var baseXPosition = this.leftMargin;
 	for (var i = 0; i < this.numberOfDays; i++) {
 		//var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
