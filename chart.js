@@ -12,6 +12,7 @@ function Chart() {
 	this.init();
 }
 
+
 /* Initialize the chart */
 Chart.prototype.init = function() {
 	// get dimensions from jquery drawElement
@@ -36,10 +37,29 @@ Chart.prototype.init = function() {
 	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
 
+	// create a background rectangle to capture clicks
+	var x1 = 0;
+	var y1 = 0;
+	var width = this.chartWidth;
+	var height = this.chartHeight.bottomMargin;
+
 	// draw axes
 	this.drawXAxis();
 	this.drawYAxis();
+
+	var chart = this;
+	var clickLayer = this.paper.rect(x1, y1, width, height);
+	clickLayer.attr({'fill' : '#fff', 'fill-opacity' : '0'});
+	clickLayer.node.onclick = 
+		function(e) {
+			console.log(e.y);
+			var val = chart.pointToValue(e.y);
+			console.log('value ' + val);
+		};
+
+	this.clickLayer = clickLayer;
 };
+
 
 // draws the lines on the x axis of the chart
 Chart.prototype.drawXAxis = function() {
@@ -84,6 +104,7 @@ Chart.prototype.drawXAxis = function() {
 	}
 	return 'done';
 }
+
 
 // get y positions for and draw lines for values in between the high and the low
 Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX) {
@@ -131,8 +152,6 @@ Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decade
 	var logDecadeProportion = log10(decadeProportion);
 	var offsetFromBase = this.decadeHeight * logDecadeProportion;
 	var y = baseLineYPosition - offsetFromBase;
-
-	// var flippedY = (this.chartHeight - y) - this.topMargin;
 	return y;
 }
 
@@ -180,13 +199,17 @@ Chart.prototype.drawYAxis = function() {
 			'dataName' : 'value',
 			//'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
 		};
-		
-		// draw the baseValue line on the chart for this decade
-		this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
 
 		var chart = this;
 		if (i%14 === 0) {
 			this.drawLabel(this.leftMargin + i*spacing, this.chartHeight + labelPadding, i);
+
+			// draw extra-long line
+			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY + (labelPadding/2), lineAttrs);
+		}
+		else {
+			// draw the baseValue line on the chart for this decade
+			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
 		}
 
 		if (i%7 === 0) {
@@ -243,6 +266,7 @@ Chart.prototype.readPoint = function() {
 // takes a point on the chart and converts it to a semantic numeric value
 Chart.prototype.pointToValue = function(yPosition) {
 	// get the base position (we're talking pixels) by using the value to position funciton on the base position
+	debugger;
 	var decadeNumber = this.findDecade(yPosition);
 	var decadeBasePosition = decadeNumber * this.decadeHeight;
 	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
@@ -254,7 +278,8 @@ Chart.prototype.pointToValue = function(yPosition) {
 
 Chart.prototype.findDecade = function(point) {
 	var decadeNumber = Math.floor(point/this.decadeHeight);
-	console.log(decadeNumber);
+	// flip it
+	decadeNumber = this.numberOfDecades - decadeNumber;
 	return decadeNumber;
 }
 
