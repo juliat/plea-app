@@ -22,7 +22,8 @@ Chart.prototype.init = function() {
 	console.log('chartHeight is ' + this.chartHeight);
 	
 	this.leftMargin = this.drawElement.width() * 0.05;
-	this.chartWidth = this.drawElement.width() - this.leftMargin;
+	this.rightMargin = this.drawElement.width() * 0.05;
+	this.chartWidth = this.drawElement.width() - this.leftMargin - this.rightMargin;
 	this.labelPadding = this.leftMargin * 0.33;
 
 	// calculate height of a decade in pixels by dividing the chart height by
@@ -175,7 +176,7 @@ Chart.prototype.drawYAxis = function() {
 	roundingErrorRoom = this.bottomMargin * 0.15;
 	var lineEndY = (this.chartHeight - this.bottomMargin) + roundingErrorRoom;
 	var baseXPosition = this.leftMargin;
-	for (var i = 0; i < this.numberOfDays; i++) {
+	for (var i = 0; i <= this.numberOfDays; i++) {
 		//var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
 		//var line = this.paper.path(vpath); 
 		var lineAttrs = {
