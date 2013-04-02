@@ -17,7 +17,9 @@ Chart.prototype.init = function() {
 	// get dimensions from jquery drawElement
 	this.bottomMargin = this.drawElement.height() * 0.05;
 	this.chartHeight = this.drawElement.height() - this.bottomMargin;
+	
 	console.log('chartHeight is ' + this.chartHeight);
+	
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.chartWidth = this.drawElement.width() - this.leftMargin;
 
@@ -53,8 +55,10 @@ Chart.prototype.drawXAxis = function() {
 
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
-		var baseLineYPosition = (decadeNumber * this.decadeHeight);
-		var reversePosition = this.valueToYPosition(baseLineYPosition, decadeBaseValue, decadeBaseValue);
+		console.log('drawing decade number ' + decadeNumber);
+
+		var baseLineYPosition = this.chartHeight - (decadeNumber * this.decadeHeight);
+		console.log('baseLineYPosition is ' + baseLineYPosition);
 
 		var lineAttrs = {
 			'weight': '1.5',
@@ -64,10 +68,10 @@ Chart.prototype.drawXAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, this.chartHeight - reversePosition, lineAttrs);
+		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
 
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - labelPadding, this.chartHeight - reversePosition, decadeBaseValue);
+		this.drawLabel(lineStartX - labelPadding, baseLineYPosition, decadeBaseValue);
 
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
@@ -75,12 +79,9 @@ Chart.prototype.drawXAxis = function() {
 			// solve equation where value equals two to nine, then multiply by base of the decade
 			var lineValue = j * decadeBaseValue;
 
-			// with coordinates from bottom up instead of top down
 			console.log('baseLineYPosition ' + baseLineYPosition);
-			var reverseYPosition = this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
-			console.log('reverseYPosition ' + reverseYPosition);
-			intermediateLineYPosition = this.chartHeight - reverseYPosition;
-			console.log('intermediateLineYPosition = ' + this.chartHeight + ' - ' + reverseYPosition + ' = ' + intermediateLineYPosition);
+			intermediateLineYPosition = this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
+			console.log('intermediateLineYPosition = ' + intermediateLineYPosition);
 
 			var numDigits = 3;
 			lineAttrs = {
@@ -116,14 +117,15 @@ Chart.prototype.drawLabel = function(x, y, lineValue, textAnchor) {
 
 // takes a value and coverts it to a y position on the chart
 Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decadeBaseValue) {
-
 	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
 	var logDecadeProportion = log10(decadeProportion);
 	var offsetFromBase = this.decadeHeight * logDecadeProportion;
 	var y = baseLineYPosition + offsetFromBase;
 
-	return y;
+	var flippedY = this.chartHeight - y;
+	return flippedY;
 }
+
 
 Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
