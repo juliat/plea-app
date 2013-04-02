@@ -37,27 +37,9 @@ Chart.prototype.init = function() {
 	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
 
-	// create a background rectangle to capture clicks
-	var x1 = 0;
-	var y1 = 0;
-	var width = this.chartWidth;
-	var height = this.chartHeight.bottomMargin;
-
 	// draw axes
 	this.drawXAxis();
 	this.drawYAxis();
-
-	var chart = this;
-	var clickLayer = this.paper.rect(x1, y1, width, height);
-	clickLayer.attr({'fill' : '#fff', 'fill-opacity' : '0'});
-	clickLayer.node.onclick = 
-		function(e) {
-			console.log(e.y);
-			var val = chart.pointToValue(e.y);
-			console.log('value ' + val);
-		};
-
-	this.clickLayer = clickLayer;
 };
 
 
