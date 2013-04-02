@@ -23,7 +23,7 @@ Chart.prototype.init = function() {
 	
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.chartWidth = this.drawElement.width() - this.leftMargin;
-	this.labelPadding = this.leftMargin * 0.25;
+	this.labelPadding = this.leftMargin * 0.33;
 
 	// calculate height of a decade in pixels by dividing the chart height by
 	// the number of decades
@@ -53,12 +53,11 @@ Chart.prototype.drawXAxis = function() {
 	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
-		debugger;
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
 		console.log('drawing decade number ' + decadeNumber + ' for base value ' + decadeBaseValue);
 
-		var decadeBasePosition = this.chartHeight - (decadeNumber * this.decadeHeight) + this.topMargin;
+		var decadeBasePosition = this.chartHeight - (decadeNumber * this.decadeHeight);
 		console.log('decadeBasePosition is ' + decadeBasePosition);
 
 		var numDigits = 3;
@@ -71,10 +70,18 @@ Chart.prototype.drawXAxis = function() {
 		
 		// draw the baseValue line on the chart for this decade
 		this.drawHorizontalLine(lineStartX, lineEndX, decadeBasePosition, lineAttrs);
-
 		// writes the number label for the grid line
 		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue);
 
+		// if we're on the last decade, also draw the top line for the decade
+		if (decadeNumber === (this.numberOfDecades - 1)) {
+		    var topDecadePosition = decadeBasePosition - this.decadeHeight;
+		    var topDecadeValue = Math.pow(10, this.minExponent + i + 1);
+		    this.drawHorizontalLine(lineStartX, lineEndX, topDecadePosition, lineAttrs);
+		    this.drawLabel(lineStartX - this.labelPadding, topDecadePosition, topDecadeValue);
+		}
+
+		// draw all the log lines for this decade
 		this.drawIntermediateLines(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX)
 	}
 	return 'done';
@@ -161,10 +168,12 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 
 // draw regularly spaced lines for the number of days in the chart
 Chart.prototype.drawYAxis = function() {
-	var spacing = this.paper.width/this.numberOfDays;
+	var spacing = this.chartWidth/this.numberOfDays;
 	var labelPadding = this.bottomMargin * 0.25;
-	var lineStartY = this.topMargin;
-	var lineEndY = this.chartHeight - this.bottomMargin;
+	var roundingErrorRoom = (this.topMargin * 0.15);
+	var lineStartY = this.topMargin - roundingErrorRoom;
+	roundingErrorRoom = this.bottomMargin * 0.15;
+	var lineEndY = (this.chartHeight - this.bottomMargin) + roundingErrorRoom;
 	var baseXPosition = this.leftMargin;
 	for (var i = 0; i < this.numberOfDays; i++) {
 		//var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
@@ -181,7 +190,7 @@ Chart.prototype.drawYAxis = function() {
 
 		var chart = this;
 		if (i%14 === 0) {
-			this.drawLabel(this.leftMargin + i*spacing, this.paper.height - this.bottomMargin + labelPadding, i);
+			this.drawLabel(this.leftMargin + i*spacing, this.chartHeight + labelPadding, i);
 		}
 
 		if (i%7 === 0) {
@@ -210,7 +219,7 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
 	var lineWeight = params['weight'] || '1';
 	var dataName = params['dataName'] || '';
  	var dataValue = params['dataValue'] || '';
- 	var decadeNumber = params['decadeNumber'] || 'julia saysdecade number not defined';
+ 	var decadeNumber = params['decadeNumber'] || 'julia says decade number not defined';
 
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor});
@@ -251,13 +260,6 @@ Chart.prototype.findDecade = function(point) {
 	var decadeNumber = Math.floor(point/this.decadeHeight);
 	console.log(decadeNumber);
 	return decadeNumber;
-}
-
-Chart.prototype.readPoint = function() {
-	// find decade
-	// find percent up decade
-	// do 10^percent up that decade
-	// multiply that by base value in the decade
 }
 
 // note: for sooming maybe only draw decades
