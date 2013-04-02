@@ -56,10 +56,7 @@ Chart.prototype.drawXAxis = function() {
 
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
-		console.log('drawing decade number ' + decadeNumber + ' for base value ' + decadeBaseValue);
-
 		var decadeBasePosition = this.chartHeight - (decadeNumber * this.decadeHeight);
-		console.log('decadeBasePosition is ' + decadeBasePosition);
 
 		var numDigits = 3;
 		var lineAttrs = {
@@ -95,9 +92,7 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 		// solve equation where value equals two to nine, then multiply by base of the decade
 		var lineValue = j * decadeBaseValue;
 
-		console.log('baseLineYPosition ' + decadeBasePosition);
 		intermediateLineYPosition = this.valueToYPosition(decadeBasePosition, lineValue, decadeBaseValue);
-		console.log('intermediateLineYPosition = ' + intermediateLineYPosition);
 
 		var numDigits = 3;
 		
@@ -175,7 +170,7 @@ Chart.prototype.drawYAxis = function() {
 	var lineStartY = this.topMargin - roundingErrorRoom;
 	roundingErrorRoom = this.bottomMargin * 0.15;
 	var lineEndY = (this.chartHeight - this.bottomMargin) + roundingErrorRoom;
-	var baseXPosition = this.leftMargin;
+	var startX = this.leftMargin;
 	for (var i = 0; i <= this.numberOfDays; i++) {
 		//var vpath = "M " + (this.leftMargin + i*spacing) + " 0 l 0 " + (this.paper.height - this.bottomMargin);
 		//var line = this.paper.path(vpath); 
@@ -187,7 +182,7 @@ Chart.prototype.drawYAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawVerticalLine(baseXPosition + i*spacing, lineStartY, lineEndY, lineAttrs);
+		this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
 
 		var chart = this;
 		if (i%14 === 0) {
