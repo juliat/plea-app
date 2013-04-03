@@ -40,11 +40,16 @@ Chart.prototype.init = function() {
 	// store dom element
 	var drawDOMElement = document.getElementById('draw');
 
+	var chart = this;
 	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
 	this.rectangle = this.paper.rect(0, 0, this.drawElement.width(), this.drawElement.height());  
 	this.rectangle.attr({'fill' : '#fff'});
-	this.rectangle.click(function(e){ console.log('rectangle ' + e.y)});
+	this.rectangle.click(function(e){ 
+		console.log('rectangle ' + e.y);
+		var  value = chart.pointToValue(e.y);
+		console.log(value);
+	});
 	
 	// draw axes
 	this.drawXAxis();
@@ -258,6 +263,12 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
 		console.log(event.y);
 		console.log('y from the bottom is ' + y);
 		var value = chart.pointToValue(y);
+		// drawpoint
+	});
+
+	// for drawing points where people touch on the chart
+	line.touchend(function(event){
+		// draw point on active day line
 	});
 }
 
@@ -277,14 +288,17 @@ Chart.prototype.drawHistoricalData = function() {
 }
 
 // should take in a day as an int between 0 and 140 and use that to determine where to draw the point vertically
-Chart.prototype.drawPoint = function(day, value) {
-
+Chart.prototype.drawValue = function(day, value) {
+	var cx = day;
+	var cy = this.valueToYPosition(value);
+	var radius = 1; //default
+	var circle = paper.circle(cx, cy, radius);
 }
+
 
 // takes a point on the chart and converts it to a semantic numeric value
 Chart.prototype.pointToValue = function(yPosition) {
 	// get the base position (we're talking pixels) by using the value to position funciton on the base position
-	debugger;
 	var decadeNumber = this.findDecade(yPosition);
 	var decadeBasePosition = decadeNumber * this.decadeHeight;
 	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
