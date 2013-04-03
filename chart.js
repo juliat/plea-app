@@ -257,16 +257,24 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
 	});
 }
 
+// converts a day (in int form, between 0 and 140 and 
+// returns the x coordinate of that day line on the chart)
+Chart.prototype.dayToXPosition = function(day) {
+	if ((day < 0) || (day > this.numberOfDays)) {
+		return 'day out of range';
+	}
+	// compute based on margins and spacing. add variables from the drawYaxis function to the
+	// chart object if need be
+}
+
 // plot historical data on the chart (should call helper methods for plotting data points on each day)
 Chart.prototype.drawHistoricalData = function() {
 
 }
 
-Chart.prototype.readPoint = function() {
-	// find decade
-	// find percent up decade
-	// do 10^percent up that decade
-	// multiply that by base value in the decade
+// should take in a day as an int between 0 and 140 and use that to determine where to draw the point vertically
+Chart.prototype.drawPoint = function(day, value) {
+
 }
 
 // takes a point on the chart and converts it to a semantic numeric value
