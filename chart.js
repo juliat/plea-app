@@ -12,7 +12,6 @@ function Chart() {
 	this.init();
 }
 
-
 /* Initialize the chart */
 Chart.prototype.init = function() {
 	// get dimensions from jquery drawElement
@@ -60,7 +59,7 @@ Chart.prototype.drawXAxis = function() {
 
 	// these variables define the x positions for the start and end of each line
 	var lineStartX = this.leftMargin;
-	var lineEndX = lineStartX + this.chartWidth;
+	var lineEndX = this.chartWidth;
 	var chartBottomY = this.topMargin + this.chartHeight;
 	var tickerStartX;
 	var tickerEndX;
