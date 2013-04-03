@@ -53,8 +53,8 @@ Chart.prototype.drawXAxis = function() {
 
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
-		var baseLineYPosition = (decadeNumber * this.decadeHeight);
-		var reversePosition = this.valueToYPosition(baseLineYPosition, decadeBaseValue, decadeBaseValue);
+		var reversedBaseLineYPosition = (decadeNumber * this.decadeHeight);
+		var baseLineYPosition = this.chartHeight - reversedBaseLineYPosition;
 
 		var lineAttrs = {
 			'weight': '1.5',
@@ -64,20 +64,20 @@ Chart.prototype.drawXAxis = function() {
 		};
 		
 		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX, lineEndX, this.chartHeight - reversePosition, lineAttrs);
+		this.drawHorizontalLine(lineStartX, lineEndX, baseLineYPosition, lineAttrs);
 
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - labelPadding, this.chartHeight - reversePosition, decadeBaseValue);
+		this.drawLabel(lineStartX - labelPadding, baseLineYPosition, decadeBaseValue);
 
 		// get y positions for and draw lines for values in between the high and the low
 		var intermediateLineYPosition;
 		for (var j = 2; j < 10; j++) {
 			// solve equation where value equals two to nine, then multiply by base of the decade
-			var lineValue = j * decadeBaseValue;
+			var lineValue = j * decadeBaseValue; 
 
 			// with coordinates from bottom up instead of top down
 			console.log('baseLineYPosition ' + baseLineYPosition);
-			var reverseYPosition = this.valueToYPosition(baseLineYPosition, lineValue, decadeBaseValue);
+			var reverseYPosition = this.valueToYPosition(reversedBaseLineYPosition, lineValue, decadeBaseValue);
 			console.log('reverseYPosition ' + reverseYPosition);
 			intermediateLineYPosition = this.chartHeight - reverseYPosition;
 			console.log('intermediateLineYPosition = ' + this.chartHeight + ' - ' + reverseYPosition + ' = ' + intermediateLineYPosition);
