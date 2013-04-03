@@ -23,10 +23,15 @@ Chart.prototype.init = function() {
 	this.rightMargin = this.drawElement.width() * 0.05;
 	this.chartWidth = this.drawElement.width() - (this.leftMargin + this.rightMargin);
 	
-	this.labelPadding = this.leftMargin * 0.33;
+	this.labelPadding = this.leftMargin * 0.15;
 
 	this.chartHeight = this.drawElement.height() - (this.bottomMargin + this.topMargin);
 	
+
+	// define length of tickers
+	this.intermediateTickerLength = 5;
+	this.baseTickerLength = 8;
+
 	console.log('chartHeight is ' + this.chartHeight);
 
 	// calculate height of a decade in pixels by dividing the chart height by
@@ -57,6 +62,8 @@ Chart.prototype.drawXAxis = function() {
 	var lineStartX = this.leftMargin;
 	var lineEndX = lineStartX + this.chartWidth;
 	var chartBottomY = this.topMargin + this.chartHeight;
+	var tickerStartX;
+	var tickerEndX;
 
 	/* a decade is the section between two exponents of ten on the chart. For example, a decade would be from 1-10 or 0.001-0.01. */
 	for (i = 0; i < this.numberOfDecades; i++) {
@@ -77,14 +84,19 @@ Chart.prototype.drawXAxis = function() {
 		// draw the baseValue line on the chart for this decade
 		this.drawHorizontalLine(lineStartX, lineEndX, decadeBasePosition, lineAttrs);
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue);
+		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue, 'end');
+		// draw ticker on baseValue line
+		tickerStartX = lineStartX - this.baseTickerLength;
+		tickerEndX = lineStartX;
+		this.drawHorizontalLine(tickerStartX, tickerEndX, decadeBasePosition, lineAttrs);
 
-		// if we're on the last decade, also draw the top line for the decade
+		// if we're on the last decade, also draw the top line and ticker for the decade
 		if (decadeNumber === (this.numberOfDecades - 1)) {
 		    var topDecadePosition = decadeBasePosition - this.decadeHeight;
 		    var topDecadeValue = Math.pow(10, this.minExponent + i + 1);
 		    this.drawHorizontalLine(lineStartX, lineEndX, topDecadePosition, lineAttrs);
-		    this.drawLabel(lineStartX - this.labelPadding, topDecadePosition, topDecadeValue);
+		    this.drawHorizontalLine(tickerStartX, tickerEndX, topDecadePosition, lineAttrs);
+		    this.drawLabel(lineStartX - this.labelPadding, topDecadePosition, topDecadeValue, 'end');
 		}
 
 		// draw all the log lines for this decade
@@ -97,6 +109,8 @@ Chart.prototype.drawXAxis = function() {
 // get y positions for and draw lines for values in between the high and the low
 Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX) {
 	var intermediateLineYPosition;
+	var tickerStartX;
+	var tickerEndX;
 	for (var j = 2; j < 10; j++) {
 		// solve equation where value equals two to nine, then multiply by base of the decade
 		var lineValue = j * decadeBaseValue;
@@ -117,7 +131,12 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 
 		// only draw labels on the fifth line in the decade (this is just how the chart is designed)
 		if (j === 5) {
-			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue);
+			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue, 'end');
+
+			//draw ticker on intermediate lines
+			tickerStartX = lineStartX - this.intermediateTickerLength;
+			tickerEndX = lineStartX;
+			this.drawHorizontalLine(tickerStartX, tickerEndX, intermediateLineYPosition, lineAttrs);
 		}
 	}
 }
@@ -188,10 +207,12 @@ Chart.prototype.drawYAxis = function() {
 
 		var chart = this;
 		if (i%14 === 0) {
-			this.drawLabel(startX + i*spacing, lineEndY, i);
-
+			this.drawLabel(startX + i*spacing, lineEndY + this.labelPadding, i);
+			lineAttrs.weight = '1.5';
 			// draw extra-long line
-			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
+			boldLineStartY = lineStartY - this.baseTickerLength;
+			boldLineEndY = lineEndY + this.baseTickerLength;
+			this.drawVerticalLine(startX + i*spacing, boldLineStartY, boldLineEndY, lineAttrs);
 		}
 		else {
 			// draw the baseValue line on the chart for this decade
@@ -199,7 +220,9 @@ Chart.prototype.drawYAxis = function() {
 		}
 
 		if (i%7 === 0) {
-			//
+			lineAttrs.weight = '1.5';
+			// draw extra-long line
+			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
 		}
 		/*line.click(function(event){
 			var y = chart.chartHeight - event.y;
