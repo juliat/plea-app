@@ -15,6 +15,11 @@ function Chart() {
 
 /* Initialize the chart */
 Chart.prototype.init = function() {
+	// initialize width and height of chart based on window size
+	var width = $(window).width() - 25;
+	var height = $(window).height() - 25;
+	$("#draw").width(width);
+	$("#draw").height(height);
 	// get dimensions from jquery drawElement
 	this.bottomMargin = this.drawElement.height() * 0.1;
 	this.topMargin = this.drawElement.height() * 0.05;
@@ -265,6 +270,12 @@ Chart.prototype.dayToXPosition = function(day) {
 	}
 	// compute based on margins and spacing. add variables from the drawYaxis function to the
 	// chart object if need be
+	else {
+		var startX = this.leftMargin;
+		var spacing = this.chartWidth/this.numberOfDays;
+		var xValue = startX + day*spacing;
+		return xValue;
+	}
 }
 
 // plot historical data on the chart (should call helper methods for plotting data points on each day)
