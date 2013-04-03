@@ -218,6 +218,7 @@ Chart.prototype.drawYAxis = function() {
 			boldLineEndY = lineEndY + this.baseTickerLength;
 			this.drawVerticalLine(startX + i*spacing, boldLineStartY, boldLineEndY, lineAttrs);
 		}
+
 		else {
 			// draw the baseValue line on the chart for this decade
 			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
@@ -228,12 +229,6 @@ Chart.prototype.drawYAxis = function() {
 			// draw extra-long line
 			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
 		}
-		/*line.click(function(event){
-			var y = chart.chartHeight - event.y;
-			console.log(event.y);
-			console.log('y is ' + y);
-			var value = chart.pointToValue(y);
-		})*/
 	}
 }
 
