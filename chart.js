@@ -388,8 +388,14 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 					"stroke-width": "1",
 					"stroke": "#000000"
 				});
-				set.push(mistakeLineOne)
+				set.push(mistakeLineOne);
+				set.push(mistakeLineTwo);
 			}
+		});
+		
+		chart.hammertime.on("doubletap", function(e) {
+			set.remove();
+			set.length = 0;
 		});
 		/*set.click(function() {
 			this.remove();
