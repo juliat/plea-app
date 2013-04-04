@@ -25,8 +25,8 @@ Chart.prototype.init = function() {
 	$("#draw").height(height);
 
 	// initialize 'draw' div as hammer touch area
-	/*var hammertime = $("#draw").hammer();
-	hammertime.on("tap", function(e) {
+	this.hammertime = $("#draw").hammer();
+	/*hammertime.on("tap", function(e) {
 		console.log("you have tapped!");
 	});*/
 
@@ -221,7 +221,7 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 		.data(dataName, dataValue)
 		.data('decadeNumber', decadeNumber)
         .click(function () {
-            alert(this.data(dataName));
+            //alert(this.data(dataName));
          });
 }
 
@@ -320,8 +320,9 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 
 	// for drawing points where people touch on the chart
 	if (isActive) {
-		var chart = this;
-		line.touchend(function(event){
+		var chart = this;/*
+		line.touchend(function(event){*/
+		chart.hammertime.on("tap", function(e) {
 			// draw point on active day line
 			var chartBottomY = chart.chartHeight + chart.topMargin;
 			var y = chartBottomY - event.y;
@@ -347,6 +348,7 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 			// draw circle
 			var circle = chart.paper.circle(objectX,objectY, circleRadius);
 			circle.attr("fill", "black");
+
 		});
 	}
 }
