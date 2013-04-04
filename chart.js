@@ -318,6 +318,7 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 		// drawpoint
 	});*/
 
+	var set = this.paper.set();
 	// for drawing points where people touch on the chart
 	if (isActive) {
 		var chart = this;/*
@@ -344,12 +345,62 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 			var objectY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
 
 			var objectX = chart.dayToXPosition(day);
-			var circleRadius = 2;
-			// draw circle
-			var circle = chart.paper.circle(objectX,objectY, circleRadius);
-			circle.attr("fill", "black");
+			var objectRadius = 2;
 
+			// draw circle
+
+			if (set.length === 0) {
+				var floorPath = "M " + (objectX - objectRadius) + ' ' + (objectY) + " l " + (2*objectRadius) + ' 0';
+				var floor = chart.paper.path(floorPath);
+				floor.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				set.push(floor);
+			}
+
+			else if (set.length === 1) {
+				var blankCircle = chart.paper.circle(objectX, objectY, objectRadius);
+				blankCircle.attr({'fill-opacity': 0});
+				set.push(blankCircle);
+			}
+
+			else if (set.length === 2) {
+				var circle = chart.paper.circle(objectX, objectY, objectRadius);
+				circle.attr({
+					'fill-opacity': 1,
+					'fill': '#000'
+				})
+				set.push(circle);
+			}
+
+			else if (set.length === 3) {
+				//create an x shape
+				var mistakesPathOne = "M " + (objectX - objectRadius)+ ' ' + (objectY - objectRadius) + " l " + (2*objectRadius) +' ' + (2*objectRadius);
+				var mistakesPathTwo = "M " + (objectX - objectRadius)+ ' ' + (objectY + objectRadius) + " l " + (2*objectRadius) +' ' + (-2*objectRadius);
+				var mistakeLineOne = chart.paper.path(mistakesPathOne);
+				var mistakeLineTwo = chart.paper.path(mistakesPathTwo);
+				mistakeLineOne.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				mistakeLineTwo.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				set.push(mistakeLineOne)
+			}
 		});
+		/*set.click(function() {
+			this.remove();
+			alert("test");
+			for (var i = 0; i < set.length; i++) {
+	            if (set[i] && set[i].removed) {
+	                delete set[i--];
+	                set.length--;
+	            }
+        }
+		});*/
 	}
 }
 
