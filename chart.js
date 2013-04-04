@@ -2,10 +2,6 @@
  * ========================================================================= *
 */
 
-window.onload = function(){
-	var chart = new Chart();
-}
-
 function Chart() {
 	this.numberOfDays = 140;
 	this.minExponent = -3;
@@ -25,13 +21,13 @@ Chart.prototype.init = function() {
 	$("#draw").height(height);
 
 	// initialize 'draw' div as hammer touch area
-	/*var hammertime = $("#draw").hammer();
-	hammertime.on("tap", function(e) {
-		console.log("you have tapped!");
-	});*/
+	var hammertime = $("#draw").hammer();
 
 	// define active day
 	this.activeDay = 18;
+	hammertime.on("tap", function(e) {
+		console.log("you have tapped!");
+	});
 
 	// get dimensions from jquery drawElement
 	this.bottomMargin = this.drawElement.height() * 0.1;
@@ -63,10 +59,7 @@ Chart.prototype.init = function() {
 	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
 	this.rectangle = this.paper.rect(0, 0, this.drawElement.width(), this.drawElement.height());  
-	this.rectangle.attr({
-		'fill' : '#fff',
-		'stroke' : '#fff'
-	});
+	this.rectangle.attr({'fill' : '#fff'});
 	this.rectangle.click(function(e){ 
 		console.log('rectangle ' + e.y);
 		var value = chart.pointToValue(e.y);
@@ -101,7 +94,7 @@ Chart.prototype.drawXAxis = function() {
 
 		var numDigits = 3;
 		var lineAttrs = {
-			'weight': '1',
+			'weight': '1.5',
 			'color' : '#A6C5D3',
 			'dataName' : 'value',
 			'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
@@ -148,7 +141,7 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 		var numDigits = 3;
 		
 		lineAttrs = {
-			'weight': '0.4',
+			'weight': '0.5',
 			'color' : '#A6C5D3',
 			'dataName' : 'value',
 			'dataValue' : lineValue.toFixed(numDigits) + '',
@@ -164,7 +157,7 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue, labelAttr);
 
 			//draw ticker on intermediate lines
-			lineAttrs.weight = '0.6';
+			lineAttrs.weight = '0.75';
 			tickerStartX = lineStartX - this.intermediateTickerLength;
 			tickerEndX = lineStartX;
 			this.drawHorizontalLine(tickerStartX, tickerEndX, intermediateLineYPosition, lineAttrs);
@@ -238,7 +231,7 @@ Chart.prototype.drawYAxis = function() {
 
 	for (var i = 0; i <= this.numberOfDays; i++) {
 		lineAttrs = {
-			'weight': '0.4',
+			'weight': '0.5',
 			'color' : '#A6C5D3',
 			'dataName' : 'value'
 			//'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
@@ -252,7 +245,7 @@ Chart.prototype.drawYAxis = function() {
 
 		//draw the blue line representing today's line
 		if (i === this.activeDay) {
-			lineAttrs.weight = '1';
+			lineAttrs.weight = '1.5';
 			lineAttrs.color = '#0000FF';
 			labelAttr = {
 				'font-size': 8,
@@ -265,7 +258,7 @@ Chart.prototype.drawYAxis = function() {
 
 		else {
 			if (i%7 === 0) {
-				lineAttrs.weight = '1';
+				lineAttrs.weight = '1.5';
 				// draw extra-long line
 				if (i%14 === 0) {
 					this.drawLabel(startX + i*spacing, lineEndY + this.labelPadding, i, labelAttr);
@@ -320,8 +313,7 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 
 	// for drawing points where people touch on the chart
 	if (isActive) {
-		var chart = this;
-		line.touchend(function(event){
+		line.click(function(event){
 			// draw point on active day line
 			var chartBottomY = chart.chartHeight + chart.topMargin;
 			var y = chartBottomY - event.y;
@@ -343,9 +335,8 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 			var objectY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
 
 			var objectX = chart.dayToXPosition(day);
-			var circleRadius = 2;
 			// draw circle
-			var circle = chart.paper.circle(objectX,objectY, circleRadius);
+			var circle = chart.paper.circle(objectX,objectY, 4);
 			circle.attr("fill", "black");
 		});
 	}
