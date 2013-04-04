@@ -19,6 +19,16 @@ Chart.prototype.init = function() {
 	var height = $(window).height() - 25;
 	$("#draw").width(width);
 	$("#draw").height(height);
+
+	// initialize 'draw' div as hammer touch area
+	var hammertime = $("#draw").hammer();
+
+	// define active day
+	this.activeDay = 18;
+	hammertime.on("tap", function(e) {
+		console.log("you have tapped!");
+	});
+
 	// get dimensions from jquery drawElement
 	this.bottomMargin = this.drawElement.height() * 0.1;
 	this.topMargin = this.drawElement.height() * 0.05;
@@ -52,7 +62,7 @@ Chart.prototype.init = function() {
 	this.rectangle.attr({'fill' : '#fff'});
 	this.rectangle.click(function(e){ 
 		console.log('rectangle ' + e.y);
-		var  value = chart.pointToValue(e.y);
+		var value = chart.pointToValue(e.y);
 		console.log(value);
 	});
 	
@@ -85,15 +95,18 @@ Chart.prototype.drawXAxis = function() {
 		var numDigits = 3;
 		var lineAttrs = {
 			'weight': '1.5',
-			'color' : '#0000ff',
+			'color' : '#A6C5D3',
 			'dataName' : 'value',
 			'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
 		};
 		
+		var labelAttr = {
+			'text-anchor': 'end',
+		}
 		// draw the baseValue line on the chart for this decade
 		this.drawHorizontalLine(lineStartX, lineEndX, decadeBasePosition, lineAttrs);
 		// writes the number label for the grid line
-		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue, 'end');
+		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue, labelAttr);
 		// draw ticker on baseValue line
 		tickerStartX = lineStartX - this.baseTickerLength;
 		tickerEndX = lineStartX;
@@ -105,7 +118,7 @@ Chart.prototype.drawXAxis = function() {
 		    var topDecadeValue = Math.pow(10, this.minExponent + i + 1);
 		    this.drawHorizontalLine(lineStartX, lineEndX, topDecadePosition, lineAttrs);
 		    this.drawHorizontalLine(tickerStartX, tickerEndX, topDecadePosition, lineAttrs);
-		    this.drawLabel(lineStartX - this.labelPadding, topDecadePosition, topDecadeValue, 'end');
+		    this.drawLabel(lineStartX - this.labelPadding, topDecadePosition, topDecadeValue, labelAttr);
 		}
 
 		// draw all the log lines for this decade
@@ -123,43 +136,51 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 	for (var j = 2; j < 10; j++) {
 		// solve equation where value equals two to nine, then multiply by base of the decade
 		var lineValue = j * decadeBaseValue;
-
 		intermediateLineYPosition = this.valueToYPosition(decadeBasePosition, lineValue, decadeBaseValue);
 
 		var numDigits = 3;
 		
 		lineAttrs = {
 			'weight': '0.5',
-			'color' : '#0000ff',
+			'color' : '#A6C5D3',
 			'dataName' : 'value',
 			'dataValue' : lineValue.toFixed(numDigits) + '',
 			'decadeNumber': decadeNumber.toFixed(numDigits) + '',
 		};
 
-		this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
-
 		// only draw labels on the fifth line in the decade (this is just how the chart is designed)
 		if (j === 5) {
-			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue, 'end');
+			var labelAttr = {
+				'font-size': 10,
+				'text-anchor': 'end'
+			}
+			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue, labelAttr);
 
 			//draw ticker on intermediate lines
+			lineAttrs.weight = '0.75';
 			tickerStartX = lineStartX - this.intermediateTickerLength;
 			tickerEndX = lineStartX;
 			this.drawHorizontalLine(tickerStartX, tickerEndX, intermediateLineYPosition, lineAttrs);
 		}
+
+		this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
 	}
 }
 
 
-Chart.prototype.drawLabel = function(x, y, lineValue, textAnchor) {
+Chart.prototype.drawLabel = function(x, y, lineValue, labelAttr) {
 	var label = this.paper.text(x, y, lineValue);
+
+	// default attributes for label
+	var textAlign = labelAttr['text-anchor'] || 'start';
+	var fontSize = labelAttr['font-size'] || 15;
+	var fontColor = labelAttr['color'] || '#A6C5D3';
+
 	label.attr({
-		'font-size': 15,
-		'fill': '#0000ff'
+		'font-size': fontSize,
+		'fill': fontColor,
+		'text-anchor': textAlign
 	});
-	// default text align
-	var textAlign = textAnchor || 'start';
-	label.attr({'text-anchor': textAnchor});
 }
 
 // takes a value and coverts it to a y position on the chart
@@ -205,45 +226,69 @@ Chart.prototype.drawYAxis = function() {
 	var lineEndY = lineStartY + this.chartHeight;
 
 	var startX = this.leftMargin;
+	var labelAttr;
+	var lineAttrs;
 
 	for (var i = 0; i <= this.numberOfDays; i++) {
-		var lineAttrs = {
-			'weight': '1',
-			'color' : '#0000ff',
-			'dataName' : 'value',
+		lineAttrs = {
+			'weight': '0.5',
+			'color' : '#A6C5D3',
+			'dataName' : 'value'
 			//'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
 		};
 
-		var chart = this;
-		if (i%14 === 0) {
-			this.drawLabel(startX + i*spacing, lineEndY + this.labelPadding, i);
+		labelAttr = {
+			'font-size': 15,
+			'color': '#A6C5D3',
+			'text-anchor': 'middle'
+		}
+
+		//draw the blue line representing today's line
+		if (i === this.activeDay) {
 			lineAttrs.weight = '1.5';
-			// draw extra-long line
-			boldLineStartY = lineStartY - this.baseTickerLength;
-			boldLineEndY = lineEndY + this.baseTickerLength;
-			this.drawVerticalLine(startX + i*spacing, boldLineStartY, boldLineEndY, lineAttrs);
+			lineAttrs.color = '#0000FF';
+			labelAttr = {
+				'font-size': 8,
+				'color': '#0000FF',
+				'text-anchor': 'middle'
+			}
+			this.drawLabel(startX + i*spacing, lineStartY - this.labelPadding, 'TODAY', labelAttr);
+			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs, true, i);
 		}
 
 		else {
-			// draw the baseValue line on the chart for this decade
-			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
-		}
+			if (i%7 === 0) {
+				lineAttrs.weight = '1.5';
+				// draw extra-long line
+				if (i%14 === 0) {
+					this.drawLabel(startX + i*spacing, lineEndY + this.labelPadding, i, labelAttr);
+					// draw extra-long line
+					boldLineStartY = lineStartY - this.baseTickerLength;
+					boldLineEndY = lineEndY + this.baseTickerLength;
+					this.drawVerticalLine(startX + i*spacing, boldLineStartY, boldLineEndY, lineAttrs);
+				}
+				else {
+					this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
+				}
+			}
 
-		if (i%7 === 0) {
-			lineAttrs.weight = '1.5';
-			// draw extra-long line
-			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
+			else {
+				// draw the baseValue line on the chart for this decade
+				this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
+			}
 		}
 	}
 }
 
-Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
+Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaX = 0; // zero because we don't want the line to be slanted
 	
 	var deltaY = y2 - y1;
 
 	var basePath = "M " + x + ' ' + y1 + " l " + deltaX + ' ' + deltaY;
+
+	var isActive = activeState || false;
 
 	// add the line to the drawing area
 	var line = this.paper.path(basePath);
@@ -258,18 +303,43 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor});
 
-	line.click(function(event){
+	/*line.click(function(event){
 		var y = (chart.chartHeight + chart.topMargin) - event.y;
 		console.log(event.y);
 		console.log('y from the bottom is ' + y);
 		var value = chart.pointToValue(y);
 		// drawpoint
-	});
+	});*/
 
 	// for drawing points where people touch on the chart
-	line.touchend(function(event){
-		// draw point on active day line
-	});
+	if (isActive) {
+		line.click(function(event){
+			// draw point on active day line
+			var chartBottomY = chart.chartHeight + chart.topMargin;
+			var y = chartBottomY - event.y;
+			var value = chart.pointToValue(y);
+			var roundingFactor;
+			if (value >= 0 && value < 0.01) roundingFactor = 1000; 
+			if (value >= 0.01 && value < 0.1) roundingFactor = 100;
+			if (value >= .1 && value < 1) roundingFactor = 10;
+			if (value >= 1 && value < 10) roundingFactor = 1;
+			if (value >= 10 && value < 100) roundingFactor = .1;
+			if (value >= 100 && value < 1000) roundingFactor = .01;
+
+			var roundedValue = Math.round(value*roundingFactor) / roundingFactor;
+
+			// converting back from value to chart y-coordinate
+			var decadeNumber = chart.findDecade(y);
+			var decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
+			var decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
+			var objectY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
+
+			var objectX = chart.dayToXPosition(day);
+			// draw circle
+			var circle = chart.paper.circle(objectX,objectY, 4);
+			circle.attr("fill", "black");
+		});
+	}
 }
 
 // converts a day (in int form, between 0 and 140 and 
