@@ -1,7 +1,60 @@
+body {
+	font-family: "Lucida Grande", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+	line-height: 21px;
+}
+
+ul {
+	clear: both;
+}
+
 #draw {
 	margin: 0;
 	padding: 0;
 	/* remove default margins around draw div */
-	margin-top: -10px;
-	margin-left: -10px;
+	/*margin-top: -10px;
+	margin-left: -10px;*/
+}
+
+#adjustments {
+	padding: 20px;
+  	display: none;
+  	z-index: 10;
+  	color: black;
+  	width: 200px;
+  	background-color: rgb(242,242,242);
+  	position: absolute;
+  	margin-left: auto;
+  	top: 0px;
+  	right: 0px;
+}
+
+.input {
+	width: 40px;
+	height: 40px;
+	background-color: white;
+	display: inline-block;
+	text-align: center;
+}
+
+.seesay {
+	float: left;
+	text-align: left;
+}
+
+.colors {
+	float: right;
+	text-align: right;
+}
+
+h1 {
+	font-size: 24px;
+	line-height: 36px;
+	text-align: center;
+}
+
+ul {
+	margin-top: 40px;
+	font-size: 18px;
+	line-height: 50px;
 }

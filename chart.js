@@ -4,6 +4,7 @@
 
 window.onload = function(){
 	var chart = new Chart();
+	$('#adjustments').height($(window).height());
 }
 
 function Chart() {
@@ -14,6 +15,17 @@ function Chart() {
 	this.drawElement = $('#draw'); 
 	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
 	this.init();
+
+	// init touch handlers for plus and minus buttons
+	var that = this;
+	$('.add').bind('click', function(e){
+		var numberPlusOne = parseInt($(this).prev().html()) + 1;
+		$(this).prev().html(numberPlusOne);
+	});
+	$('.subtract').bind('click', function(e){
+		var numberPlusOne = parseInt($(this).next().html()) - 1;
+		$(this).next().html(numberPlusOne);
+	});
 }
 
 /* Initialize the chart */
@@ -259,7 +271,8 @@ Chart.prototype.drawYAxis = function() {
 				lineAttrs.weight = '1';
 				// include tickmarks and labels on the 14th line
 				if (i%14 === 0) {
-					this.drawLabel(startX + i*spacing, lineEndY + this.labelPadding, i, labelAttr);
+					var vertLabelPadding = this.labelPadding + 10;
+					this.drawLabel(startX + i*spacing, lineEndY + vertLabelPadding, i, labelAttr);
 					this.drawVerticalLine(startX + i*spacing, lineStartY - this.baseTickLength, lineEndY + this.baseTickLength, lineAttrs);
 				}
 				else {
@@ -303,7 +316,7 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 // function that draws points on the 'today' line when there is a touch input
 Chart.prototype.createTouchEvents = function(line, day) {
 	// creates an array to store touch events
-	var set = this.paper.set();
+	this.set = this.paper.set();
 
 	var chart = this;
 	chart.hammertime.on("tap", function(e) {
@@ -311,7 +324,6 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		var chartBottomY = chart.chartHeight + chart.topMargin;
 		var y = chartBottomY - event.y;
 		var value = chart.pointToValue(y);
-
 		// create a rounding factor to snap touch event to nearest horizontal line coordinate
 		var roundingFactor;
 		if (value >= 0 && value < 0.01) roundingFactor = 1000; 
@@ -334,35 +346,38 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		var objectRadius = 3;
 
 		// draw floor, floor must snap to grid
-		if (set.length === 0) {
+		if (chart.set.length === 0) {
 			var floorPath = "M " + (objectX - objectRadius) + ' ' + (snapObjectY) + " l " + (2*objectRadius) + ' 0';
 			var floor = chart.paper.path(floorPath);
 			floor.attr({
 				"stroke-width": "1",
 				"stroke": "#000000"
 			});
-			set.push(floor);
+			$("#floors").html(Math.round(value * roundingFactor));
+			chart.set.push(floor);
 		}
 
 		// draw trials, trials must snap to grid
-		else if (set.length === 1) {
+		else if (chart.set.length === 1) {
 			var blankCircle = chart.paper.circle(objectX, snapObjectY, objectRadius);
 			blankCircle.attr({'fill-opacity': 0});
-			set.push(blankCircle);
+			$("#trials").html(Math.round(value * roundingFactor));
+			chart.set.push(blankCircle);
 		}
 
 		// draw corrects
-		else if (set.length === 2) {
+		else if (chart.set.length === 2) {
 			var circle = chart.paper.circle(objectX, objectY, objectRadius);
 			circle.attr({
 				'fill-opacity': 1,
 				'fill': '#000'
 			})
-			set.push(circle);
+			$("#corrects").html(Math.round(value));
+			chart.set.push(circle);
 		}
 
 		// draw mistakes
-		else if (set.length === 3) {
+		else if (chart.set.length === 3) {
 			//create an x shape
 			var mistakesPathOne = "M " + (objectX - objectRadius)+ ' ' + (objectY - objectRadius) + " l " + (2*objectRadius) +' ' + (2*objectRadius);
 			var mistakesPathTwo = "M " + (objectX - objectRadius)+ ' ' + (objectY + objectRadius) + " l " + (2*objectRadius) +' ' + (-2*objectRadius);
@@ -376,15 +391,25 @@ Chart.prototype.createTouchEvents = function(line, day) {
 				"stroke-width": "1",
 				"stroke": "#000000"
 			});
-			set.push(mistakeLineOne);
-			set.push(mistakeLineTwo);
+			$("#errors").html(Math.round(value));
+			chart.set.push(mistakeLineOne);
+			chart.set.push(mistakeLineTwo);
+		}
+
+		if (chart.set.length > 0) {
+			$('#adjustments').css("display", "block");
+		}
+
+		else {
+			$('#adjustments').css("display", "none");
 		}
 	});
 	
 	// erases marks on chart
 	chart.hammertime.on("swiperight", function(e) {
-		set.remove();
-		set.length = 0;
+		chart.set.remove();
+		chart.set.length = 0;
+		$('#adjustments').css("display", "none");
 	});
 }
 
