@@ -4,7 +4,6 @@
 
 window.onload = function(){
 	var chart = new Chart();
-	$('#adjustments').height($(window).height());
 }
 
 function Chart() {
@@ -15,9 +14,13 @@ function Chart() {
 	this.drawElement = $('#draw'); 
 	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
 	this.init();
+	// init adjustment div
+	this.adjustmentsInit();
+}
 
-	// init touch handlers for plus and minus buttons
+Chart.prototype.adjustmentsInit = function() {
 	var that = this;
+	$('#adjustments').height($(window).height());
 	$('.add').bind('click', function(e){
 		var numberPlusOne = parseInt($(this).prev().html()) + 1;
 		$(this).prev().html(numberPlusOne);
@@ -25,7 +28,7 @@ function Chart() {
 	$('.subtract').bind('click', function(e){
 		var numberPlusOne = parseInt($(this).next().html()) - 1;
 		$(this).next().html(numberPlusOne);
-	});
+	});	
 }
 
 /* Initialize the chart */
