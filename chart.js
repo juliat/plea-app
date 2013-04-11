@@ -306,14 +306,13 @@ Chart.prototype.createTouchEvents = function(line, day) {
 	var set = this.paper.set();
 
 	var chart = this;
-	chart.hammertime.on("touch", function(e) {
+	chart.hammertime.on("tap", function(e) {
 		// draw point on active day line
 		var chartBottomY = chart.chartHeight + chart.topMargin;
 		var y = chartBottomY - event.y;
 		var value = chart.pointToValue(y);
 
 		// create a rounding factor to snap touch event to nearest horizontal line coordinate
-		/*
 		var roundingFactor;
 		if (value >= 0 && value < 0.01) roundingFactor = 1000; 
 		if (value >= 0.01 && value < 0.1) roundingFactor = 100;
@@ -322,21 +321,21 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		if (value >= 10 && value < 100) roundingFactor = .1;
 		if (value >= 100 && value < 1000) roundingFactor = .01;
 		var roundedValue = Math.round(value*roundingFactor) / roundingFactor;
-		*/
+		
 
-		// converting back from value to chart y-coordinate
+		// converting back from value to y-coordinate
 		var decadeNumber = chart.findDecade(y);
 		var decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
 		var decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-		/*var objectY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);*/
+		var snapObjectY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
 		var objectY = chart.valueToYPosition(decadeBasePosition, value, decadeBaseValue);
 
 		var objectX = chart.dayToXPosition(day);
-		var objectRadius = 2;
+		var objectRadius = 3;
 
-		// draw floor
+		// draw floor, floor must snap to grid
 		if (set.length === 0) {
-			var floorPath = "M " + (objectX - objectRadius) + ' ' + (objectY) + " l " + (2*objectRadius) + ' 0';
+			var floorPath = "M " + (objectX - objectRadius) + ' ' + (snapObjectY) + " l " + (2*objectRadius) + ' 0';
 			var floor = chart.paper.path(floorPath);
 			floor.attr({
 				"stroke-width": "1",
@@ -345,9 +344,9 @@ Chart.prototype.createTouchEvents = function(line, day) {
 			set.push(floor);
 		}
 
-		// draw trials
+		// draw trials, trials must snap to grid
 		else if (set.length === 1) {
-			var blankCircle = chart.paper.circle(objectX, objectY, objectRadius);
+			var blankCircle = chart.paper.circle(objectX, snapObjectY, objectRadius);
 			blankCircle.attr({'fill-opacity': 0});
 			set.push(blankCircle);
 		}
@@ -382,7 +381,8 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		}
 	});
 	
-	chart.hammertime.on("doubletap", function(e) {
+	// erases marks on chart
+	chart.hammertime.on("swiperight", function(e) {
 		set.remove();
 		set.length = 0;
 	});
