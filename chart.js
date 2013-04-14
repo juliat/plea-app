@@ -24,15 +24,18 @@ Chart.prototype.adjustmentsInit = function() {
 	var decadeNumber;
 	var decadeBasePosition;
 	var decadeBaseValue;
-	var objectY;
+	var objectY; // Q: what is an object in this context? is an object a point?
 	var objectX = chart.dayToXPosition(chart.activeDay);
 	var objectRadius = 3;
 	$('#adjustments').height($(window).height());
+
+	// bind click events to the adjustment buttons
 	$('.add').bind('click', function(e){
 		var numberPlusOne = parseInt($(this).prev().html()) + 1;
 		$(this).prev().html(numberPlusOne);
 		var label = $(this).attr('id');
 
+		// There's a cleaner way to do this using a case statement, or you can break it up into different functions
 		// if you increment correct
 		if (label === "add-correct") {
 			// only do something if a circle is in the set, circle is in position index 2 in aray
