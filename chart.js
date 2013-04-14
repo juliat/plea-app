@@ -14,7 +14,41 @@ function Chart() {
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
 	this.drawElement = $('#draw'); 
-	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
+	this.markerRadius = 3;
+
+	// to replace 'set'
+	this.markers = {
+		'corrects' : {
+						'markerType' : 'filled-circle',
+						'order' : 1,
+						'value' : null
+					 },
+		'floors' :   {
+						'markerType' : 'line',
+						'order' : 0,
+						'value' : null
+				     },
+		'errors' :   {
+						'markerType' : 'cross',
+						'order': 2,
+						'value' : null
+				     },
+		'trials' :   {
+						'markerType' : 'empty-circle',
+						'order' : 3,
+						'value' : null
+				     },
+	};
+	this.markerStyles = {
+		'filled-circle' : {'fill-opacity': 1,
+						   'fill': '#000'},
+		'line' : { "stroke-width": "1",
+					 "stroke": "#000000"},
+		'cross' : { "stroke-width": "1",
+				    "stroke": "#000000"},
+		'empty-circle' : {'fill-opacity': 0},
+	};
+
 	this.init();
 	// init adjustment div
 	this.adjustmentsInit();
@@ -78,7 +112,18 @@ Chart.prototype.init = function() {
 	this.drawYAxis();
 };
 
+Chart.prototype.drawMarker = function(valueType, valueToMark) {
+	var markToDraw = this.markers[valueType]; // get the mark to draw based on the valueType. e.g., corrects => filled circle
+}
 
+Chart.drawCircle = function (x, y, isFilled) {
+	// create new circle with new position
+	newCircle = chart.paper.circle(x, y, markerRadius);
+	
+	// factor out attributes into dictionary
+	var correctMarkerStyles = chart.markerStyles[this.markers['correct']]
+	newCircle.attr()
+}
 
 Chart.prototype.adjustmentsInit = function() {
 	var chart = this;
@@ -108,16 +153,11 @@ Chart.prototype.adjustmentsInit = function() {
 				
 				decadeBasePosition = chart.getDecadeBasePosition(decadeNumber);
 				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
-				
+
 				// calculate new y position for numberPlusOne
 				markerY = chart.valueToYPosition(decadeBasePosition, numberPlusOne, decadeBaseValue);
-				// create new circle with new position
-				newCircle = chart.paper.circle(markerX, markerY, markerRadius);
-				// factor out attributes into dictionary
-				newCircle.attr({
-					'fill-opacity': 1,
-					'fill': '#000'
-				})
+				
+				
 				// swap out old circle for new one
 				chart.set[2].remove();
 				chart.set[2] = newCircle;
@@ -136,10 +176,7 @@ Chart.prototype.adjustmentsInit = function() {
 				floorPath = "M " + (markerX - markerRadius) + ' ' + markerY + " l " + (2*markerRadius) + ' 0';
 				floor = chart.paper.path(floorPath);
 				// factor out attributes into dictionary
-				floor.attr({
-					"stroke-width": "1",
-					"stroke": "#000000"
-				});
+				floor.attr(// floormarker styles);
 				// swap things. This seems repetitive again. How could we combine this? (only thing that varies is index number of what we're swapping)
 				chart.set[0].remove();
 				chart.set[0] = floor;
@@ -655,6 +692,7 @@ Chart.prototype.pointToValue = function(yPosition) {
 	return value;
 }
 
+// takes a point and finds what decade you are in based on that point
 Chart.prototype.findDecade = function(point) {
 	var decadeNumber = Math.floor(point/this.decadeHeight);
 	return decadeNumber;
