@@ -2,209 +2,56 @@
  * ========================================================================= *
 */
 
+// draw chart when window loads
 window.onload = function(){
 	var chart = new Chart();
 }
 
+// construct chart object
 function Chart() {
 	this.numberOfDays = 140;
 	this.minExponent = -3;
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
 	this.drawElement = $('#draw'); 
-	// to be filled in when chart is drawn. should map exponents/decadeValues to yPositions
+	this.markerRadius = 3;
+
+	// to replace 'set'
+	this.markers = {
+		'corrects' : {
+						'markerType' : 'filled-circle',
+						'order' : 1,
+						'value' : null
+					 },
+		'floors' :   {
+						'markerType' : 'line',
+						'order' : 0,
+						'value' : null
+				     },
+		'errors' :   {
+						'markerType' : 'cross',
+						'order': 2,
+						'value' : null
+				     },
+		'trials' :   {
+						'markerType' : 'empty-circle',
+						'order' : 3,
+						'value' : null
+				     },
+	};
+	this.markerStyles = {
+		'filled-circle' : {'fill-opacity': 1,
+						   'fill': '#000'},
+		'line' : { "stroke-width": "1",
+					 "stroke": "#000000"},
+		'cross' : { "stroke-width": "1",
+				    "stroke": "#000000"},
+		'empty-circle' : {'fill-opacity': 0},
+	};
+
 	this.init();
 	// init adjustment div
 	this.adjustmentsInit();
-}
-
-Chart.prototype.adjustmentsInit = function() {
-	var chart = this;
-	var chartBottomY = chart.topMargin + chart.chartHeight;
-	var decadeNumber;
-	var decadeBasePosition;
-	var decadeBaseValue;
-	var objectY; // Q: what is an object in this context? is an object a point?
-	var objectX = chart.dayToXPosition(chart.activeDay);
-	var objectRadius = 3;
-	$('#adjustments').height($(window).height());
-
-	// bind click events to the adjustment buttons
-	$('.add').bind('click', function(e){
-		var numberPlusOne = parseInt($(this).prev().html()) + 1;
-		$(this).prev().html(numberPlusOne);
-		var label = $(this).attr('id');
-
-		// There's a cleaner way to do this using a case statement, or you can break it up into different functions
-		// if you increment correct
-		if (label === "add-correct") {
-			// only do something if a circle is in the set, circle is in position index 2 in aray
-			if (chart.set.length >= 3) {
-				decadeNumber = 3;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				console.log('decade base value is ' + decadeBaseValue);
-				console.log('decade base position is ' + decadeBasePosition);
-				console.log('decade number is ' + decadeNumber);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
-				console.log('y position is ' + objectY);
-				newCircle = chart.paper.circle(objectX, objectY, objectRadius);
-				newCircle.attr({
-					'fill-opacity': 1,
-					'fill': '#000'
-				})
-				chart.set[2].remove();
-				chart.set[2] = newCircle;
-			}
-		}
-
-		if (label === "add-floor") {
-			// only do something if a floor is in the set, floor is in position index 0 in aray
-			if (chart.set.length >= 1) {
-				decadeNumber = 3;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				console.log('decade base value is ' + decadeBaseValue);
-				console.log('decade base position is ' + decadeBasePosition);
-				console.log('decade number is ' + decadeNumber);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
-				console.log('y position is ' + objectY);
-				floorPath = "M " + (objectX - objectRadius) + ' ' + objectY + " l " + (2*objectRadius) + ' 0';
-				floor = chart.paper.path(floorPath);
-				floor.attr({
-					"stroke-width": "1",
-					"stroke": "#000000"
-				});
-				chart.set[0].remove();
-				chart.set[0] = floor;
-			}
-		}
-
-		if (label === "add-error") {
-			if (chart.set.length >= 4) {
-				decadeNumber = 3;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				console.log('decade base value is ' + decadeBaseValue);
-				console.log('decade base position is ' + decadeBasePosition);
-				console.log('decade number is ' + decadeNumber);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
-				console.log('y position is ' + objectY);
-				var mistakesPathOne = "M " + (objectX - objectRadius)+ ' ' + (objectY - objectRadius) + " l " + (2*objectRadius) +' ' + (2*objectRadius);
-				var mistakesPathTwo = "M " + (objectX - objectRadius)+ ' ' + (objectY + objectRadius) + " l " + (2*objectRadius) +' ' + (-2*objectRadius);
-				var mistakeLineOne = chart.paper.path(mistakesPathOne);
-				var mistakeLineTwo = chart.paper.path(mistakesPathTwo);
-				mistakeLineOne.attr({
-					"stroke-width": "1",
-					"stroke": "#000000"
-				});
-				mistakeLineTwo.attr({
-					"stroke-width": "1",
-					"stroke": "#000000"
-				});
-				chart.set[3].remove();
-				chart.set[4].remove();
-				chart.set[3] = mistakeLineOne;
-				chart.set[4] = mistakeLineTwo;
-			}
-		}
-
-		if (label === "add-trial") {
-			if (chart.set.length >= 2) {
-				decadeNumber = 0;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				console.log('decade base value is ' + decadeBaseValue);
-				console.log('decade base position is ' + decadeBasePosition);
-				console.log('decade number is ' + decadeNumber);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
-				console.log('y position is ' + objectY);
-				var blankCircle = chart.paper.circle(objectX, objectY, objectRadius);	
-				blankCircle.attr({'fill-opacity': 0});
-				chart.set[1].remove();
-				chart.set[1] = blankCircle;
-			}
-		}
-
-	});
-	$('.subtract').bind('click', function(e){
-		var numberMinusOne = parseInt($(this).next().html()) - 1;
-		$(this).next().html(numberMinusOne);
-		var label = $(this).attr('id');
-
-		if (label === "sub-correct") {
-			// only do something if a circle is in the set, circle is in position index 2 in aray
-			if (chart.set.length >= 3) {
-				decadeNumber = 3;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
-				newCircle = chart.paper.circle(objectX, objectY, objectRadius);
-				newCircle.attr({
-					'fill-opacity': 1,
-					'fill': '#000'
-				})
-				chart.set[2].remove();
-				chart.set[2] = newCircle;
-			}
-		}
-
-		if (label === "sub-floor") {
-			// only do something if a floor is in the set, floor is in position index 0 in aray
-			if (chart.set.length >= 1) {
-				decadeNumber = 3;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
-				floorPath = "M " + (objectX - objectRadius) + ' ' + objectY + " l " + (2*objectRadius) + ' 0';
-				floor = chart.paper.path(floorPath);
-				floor.attr({
-					"stroke-width": "1",
-					"stroke": "#000000"
-				});
-				chart.set[0].remove();
-				chart.set[0] = floor;
-			}
-		}
-
-		if (label === "sub-error") {
-			if (chart.set.length >= 4) {
-				decadeNumber = 3;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
-				var mistakesPathOne = "M " + (objectX - objectRadius)+ ' ' + (objectY - objectRadius) + " l " + (2*objectRadius) +' ' + (2*objectRadius);
-				var mistakesPathTwo = "M " + (objectX - objectRadius)+ ' ' + (objectY + objectRadius) + " l " + (2*objectRadius) +' ' + (-2*objectRadius);
-				var mistakeLineOne = chart.paper.path(mistakesPathOne);
-				var mistakeLineTwo = chart.paper.path(mistakesPathTwo);
-				mistakeLineOne.attr({
-					"stroke-width": "1",
-					"stroke": "#000000"
-				});
-				mistakeLineTwo.attr({
-					"stroke-width": "1",
-					"stroke": "#000000"
-				});
-				chart.set[3].remove();
-				chart.set[4].remove();
-				chart.set[3] = mistakeLineOne;
-				chart.set[4] = mistakeLineTwo;
-			}
-		}
-
-		if (label === "sub-trial") {
-			if (chart.set.length >= 2) {
-				decadeNumber = 0;
-				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-				decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-				objectY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
-				var blankCircle = chart.paper.circle(objectX, objectY, objectRadius);	
-				blankCircle.attr({'fill-opacity': 0});
-				chart.set[1].remove();
-				chart.set[1] = blankCircle;
-			}
-		}
-	});	
 }
 
 /* Initialize the chart */
@@ -264,6 +111,209 @@ Chart.prototype.init = function() {
 	this.drawXAxis();
 	this.drawYAxis();
 };
+
+Chart.prototype.drawMarker = function(valueType, valueToMark) {
+	var markToDraw = this.markers[valueType]; // get the mark to draw based on the valueType. e.g., corrects => filled circle
+}
+
+Chart.drawCircle = function (x, y, isFilled) {
+	// create new circle with new position
+	newCircle = chart.paper.circle(x, y, markerRadius);
+	
+	// factor out attributes into dictionary
+	var correctMarkerStyles = chart.markerStyles[this.markers['correct']]
+	newCircle.attr()
+}
+
+Chart.prototype.adjustmentsInit = function() {
+	var chart = this;
+	var decadeNumber;
+	var decadeBasePosition;
+	var decadeBaseValue;
+
+	var markerY; // y position of the marker
+	var markerX = chart.dayToXPosition(chart.activeDay); // x position of the marker
+	
+
+	// set the height of the # adjustments div to be the height of the window
+	$('#adjustments').height($(window).height()); 
+
+
+	$('.add').bind('click', function(e){
+		// call numberPlusOne valuePlusOne
+		var numberPlusOne = parseInt($(this).prev().html()) + 1; // grab previous html element and add one to its value
+		$(this).prev().html(numberPlusOne); // replace the contents of the previous html element with that value
+		var label = $(this).attr('id'); // get the id of the div that was clicked
+
+		// There's a cleaner way to do this using a case statement, or you can break it up into different functions
+		// if you increment correct
+		if (label === "add-correct") {
+			// only do things if there's a circle (correct) marker in the array. because of the order, it would be at index 2
+			// it may be better to abstract the set into a dictionary rather than an array and make the order an attr of objects in the array
+			if (chart.set.length >= 3) {
+				decadeNumber = 3; // what do these decade numbers mean?
+				
+				decadeBasePosition = chart.getDecadeBasePosition(decadeNumber);
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
+
+				// calculate new y position for numberPlusOne
+				markerY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
+				
+				
+				// swap out old circle for new one
+				chart.set[2].remove();
+				chart.set[2] = newCircle;
+			}
+		}
+
+		if (label === "add-floor") {
+			// only do something if a floor is in the set, floor is at index 0 in array
+			if (chart.set.length >= 1) {
+				decadeNumber = 3;
+				decadeBasePosition = chart.getDecadeBasePosition(decadeNumber);; // not DRY
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber); // not DRY
+				markerY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
+
+				// not clean. factor out the drawing of floor lines into a helper so we're not so tied to raphael's syntax
+				floorPath = "M " + (markerX - markerRadius) + ' ' + markerY + " l " + (2*markerRadius) + ' 0';
+
+				floor = chart.paper.path(floorPath);
+				// factor out attributes into dictionary
+				floor.attr(// floormarker styles);
+				// swap things. This seems repetitive again. How could we combine this? (only thing that varies is index number of what we're swapping)
+				chart.set[0].remove();
+				chart.set[0] = floor;
+			}
+		}
+
+		if (label === "add-error") {
+			if (chart.set.length >= 4) {
+				decadeNumber = 3;
+				decadeBasePosition = chart.getDecadeBasePosition(decadeNumber);; // not DRY
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber); // not DRY
+				markerY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
+				
+				// factor out drawing of X's for mistakes into helper function
+				var mistakesPathOne = "M " + (markerX - markerRadius)+ ' ' + (markerY - markerRadius) + " l " + (2*markerRadius) +' ' + (2*markerRadius);
+				var mistakesPathTwo = "M " + (markerX - markerRadius)+ ' ' + (markerY + markerRadius) + " l " + (2*markerRadius) +' ' + (-2*markerRadius);
+				var mistakeLineOne = chart.paper.path(mistakesPathOne);
+				var mistakeLineTwo = chart.paper.path(mistakesPathTwo);
+				
+				// factor out attributes into dictionary
+				mistakeLineOne.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				mistakeLineTwo.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				// swapping
+				chart.set[3].remove();
+				chart.set[4].remove();
+				chart.set[3] = mistakeLineOne;
+				chart.set[4] = mistakeLineTwo;
+			}
+		}
+
+		if (label === "add-trial") {
+			if (chart.set.length >= 2) {
+				decadeNumber = 0;
+				decadeBasePosition = chart.getDecadeBasePosition(decadeNumber);; // not DRY
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber); // not DRY
+				markerY = chart.valueToYPosition(decadeBasePosition, numberPlusOne * decadeBaseValue, decadeBaseValue);
+				
+				var blankCircle = chart.paper.circle(markerX, markerY, markerRadius);	
+				
+				// factor out attributes into dictionary
+				blankCircle.attr({'fill-opacity': 0});
+				
+				chart.set[1].remove();
+				chart.set[1] = blankCircle;
+			}
+		}
+
+	});
+	$('.subtract').bind('click', function(e){
+		var numberMinusOne = parseInt($(this).next().html()) - 1;
+		$(this).next().html(numberMinusOne);
+		var label = $(this).attr('id');
+
+		if (label === "sub-correct") {
+			// only do something if a circle is in the set, circle is in position index 2 in aray
+			if (chart.set.length >= 3) {
+				decadeNumber = 3;
+				decadeBasePosition = chart.getDecadeBasePosition(decadeNumber);;
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
+				markerY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
+				newCircle = chart.paper.circle(markerX, markerY, markerRadius);
+				newCircle.attr({
+					'fill-opacity': 1,
+					'fill': '#000'
+				})
+				chart.set[2].remove();
+				chart.set[2] = newCircle;
+			}
+		}
+
+		if (label === "sub-floor") {
+			// only do something if a floor is in the set, floor is in position index 0 in aray
+			if (chart.set.length >= 1) {
+				decadeNumber = 3;
+				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
+				markerY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
+				floorPath = "M " + (markerX - markerRadius) + ' ' + markerY + " l " + (2*markerRadius) + ' 0';
+				floor = chart.paper.path(floorPath);
+				floor.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				chart.set[0].remove();
+				chart.set[0] = floor;
+			}
+		}
+
+		if (label === "sub-error") {
+			if (chart.set.length >= 4) {
+				decadeNumber = 3; // why?
+				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight); 
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
+				markerY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
+				var mistakesPathOne = "M " + (markerX - markerRadius)+ ' ' + (markerY - markerRadius) + " l " + (2*markerRadius) +' ' + (2*markerRadius);
+				var mistakesPathTwo = "M " + (markerX - markerRadius)+ ' ' + (markerY + markerRadius) + " l " + (2*markerRadius) +' ' + (-2*markerRadius);
+				var mistakeLineOne = chart.paper.path(mistakesPathOne);
+				var mistakeLineTwo = chart.paper.path(mistakesPathTwo);
+				mistakeLineOne.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				mistakeLineTwo.attr({
+					"stroke-width": "1",
+					"stroke": "#000000"
+				});
+				chart.set[3].remove();
+				chart.set[4].remove();
+				chart.set[3] = mistakeLineOne;
+				chart.set[4] = mistakeLineTwo;
+			}
+		}
+
+		if (label === "sub-trial") {
+			if (chart.set.length >= 2) {
+				decadeNumber = 0;
+				decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
+				decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
+				markerY = chart.valueToYPosition(decadeBasePosition, numberMinusOne * decadeBaseValue, decadeBaseValue);
+				var blankCircle = chart.paper.circle(markerX, markerY, markerRadius);	
+				blankCircle.attr({'fill-opacity': 0});
+				chart.set[1].remove();
+				chart.set[1] = blankCircle;
+			}
+		}
+	});	
+}
+
 
 
 // draws the lines on the x axis of the chart
@@ -378,6 +428,17 @@ Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decade
 	return y;
 }
 
+Chart.prototype.getDecadeBasePosition = function(decadeNumber) {
+	var chartBottomY = this.topMargin + this.chartHeight;
+	var position = chartBottomY - (decadeNumber * this.decadeHeight);
+	return position;
+}
+
+Chart.prototype.getDecadeBaseValue = function(decadeNumber) {
+	var decadeExponent = decadeNumber + this.minExponent;
+	var value = Math.pow(10, decadeExponent);
+	return value;
+}
 
 Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
@@ -516,16 +577,16 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		// converting back from value to y-coordinate
 		var decadeNumber = chart.findDecade(y);
 		var decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-		var decadeBaseValue = Math.pow(10, decadeNumber + chart.minExponent);
-		var snapObjectY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
-		var objectY = chart.valueToYPosition(decadeBasePosition, value, decadeBaseValue);
+		var decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
+		var snapMarkerY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
+		var markerY = chart.valueToYPosition(decadeBasePosition, value, decadeBaseValue);
 
-		var objectX = chart.dayToXPosition(day);
-		var objectRadius = 3;
+		var markerX = chart.dayToXPosition(day);
+		var markerRadius = 3;
 
 		// draw floor, floor must snap to grid
 		if (chart.set.length === 0) {
-			var floorPath = "M " + (objectX - objectRadius) + ' ' + (snapObjectY) + " l " + (2*objectRadius) + ' 0';
+			var floorPath = "M " + (markerX - markerRadius) + ' ' + (snapMarkerY) + " l " + (2*markerRadius) + ' 0';
 			var floor = chart.paper.path(floorPath);
 			floor.attr({
 				"stroke-width": "1",
@@ -537,7 +598,7 @@ Chart.prototype.createTouchEvents = function(line, day) {
 
 		// draw trials, trials must snap to grid
 		else if (chart.set.length === 1) {
-			var blankCircle = chart.paper.circle(objectX, snapObjectY, objectRadius);
+			var blankCircle = chart.paper.circle(markerX, snapMarkerY, markerRadius);
 			blankCircle.attr({'fill-opacity': 0});
 			$("#trials").html(Math.round(value * roundingFactor));
 			chart.set.push(blankCircle);
@@ -545,7 +606,7 @@ Chart.prototype.createTouchEvents = function(line, day) {
 
 		// draw corrects
 		else if (chart.set.length === 2) {
-			var circle = chart.paper.circle(objectX, objectY, objectRadius);
+			var circle = chart.paper.circle(markerX, markerY, markerRadius);
 			circle.attr({
 				'fill-opacity': 1,
 				'fill': '#000'
@@ -557,8 +618,8 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		// draw mistakes
 		else if (chart.set.length === 3) {
 			//create an x shape
-			var mistakesPathOne = "M " + (objectX - objectRadius)+ ' ' + (objectY - objectRadius) + " l " + (2*objectRadius) +' ' + (2*objectRadius);
-			var mistakesPathTwo = "M " + (objectX - objectRadius)+ ' ' + (objectY + objectRadius) + " l " + (2*objectRadius) +' ' + (-2*objectRadius);
+			var mistakesPathOne = "M " + (markerX - markerRadius)+ ' ' + (markerY - markerRadius) + " l " + (2*markerRadius) +' ' + (2*markerRadius);
+			var mistakesPathTwo = "M " + (markerX - markerRadius)+ ' ' + (markerY + markerRadius) + " l " + (2*markerRadius) +' ' + (-2*markerRadius);
 			var mistakeLineOne = chart.paper.path(mistakesPathOne);
 			var mistakeLineTwo = chart.paper.path(mistakesPathTwo);
 			mistakeLineOne.attr({
@@ -633,6 +694,7 @@ Chart.prototype.pointToValue = function(yPosition) {
 	return value;
 }
 
+// takes a point and finds what decade you are in based on that point
 Chart.prototype.findDecade = function(point) {
 	var decadeNumber = Math.floor(point/this.decadeHeight);
 	return decadeNumber;
