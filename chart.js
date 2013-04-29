@@ -184,13 +184,29 @@ Chart.prototype.adjustmentsInit = function() {
 	var index;
 
 	// set the height of the # adjustments div to be the height of the window
-	$('#adjustments').height($(window).height()); 
+	$('#adjustments').width($(window).width()); 
 
-	$('.add').bind('click', function(e){
+	$('.add').on('touchstart', function(e){
 		// call numberPlusOne valuePlusOne
+		e.preventDefault();
 		var numberPlusOne = parseInt($(this).prev().html()) + 1; // grab previous html element and add one to its value
-		$(this).prev().html(numberPlusOne); // replace the contents of the previous html element with that value
+		//$(this).prev().html(numberPlusOne); // replace the contents of the previous html element with that value
 		var label = $(this).attr('id'); // get the id of the div that was clicked
+
+		console.log(chart.saveValue);
+		if (chart.saveValue >= 1) {
+			chart.saveValue+=1;
+			var floorNumberPlusOne = 60/chart.saveValue;
+		}
+		else {
+			var roundingFactor;
+			if (chart.saveValue >= 0 && chart.saveValue < 0.01) roundingFactor = .001; 
+			if (chart.saveValue >= 0.01 && chart.saveValue < 0.1) roundingFactor = .01;
+			if (chart.saveValue >= .1 && chart.saveValue < 1) roundingFactor = .1;
+			chart.saveValue+=roundingFactor;
+			var floorNumberPlusOne = 1/(Math.round(chart.saveValue/roundingFactor)*roundingFactor);
+		}
+		console.log(chart.saveValue);
 
 		if (label === "add-correct") {
 			// only do things if there's a circle (correct) marker in the array. because of the order, it would be at index 2
@@ -201,6 +217,7 @@ Chart.prototype.adjustmentsInit = function() {
 				markerY = chart.calculateMarkerY(decadeNumber, numberPlusOne);
 				moveDistance = -(chart.getElementYCoord(chart.set[index], index) - markerY);
 				chart.set[index].transform("...t0," + moveDistance);
+				$(this).prev().html(numberPlusOne);
 			}
 		}
 
@@ -209,9 +226,10 @@ Chart.prototype.adjustmentsInit = function() {
 			if (chart.set.length >= 1) {
 				decadeNumber = 3;
 				index = 0;
-				markerY = chart.calculateMarkerY(decadeNumber, numberPlusOne);
+				markerY = chart.calculateMarkerY(decadeNumber, chart.saveValue);
 				moveDistance = -(chart.getElementYCoord(chart.set[index], index) - markerY);
 				chart.set[index].transform("...t0," + moveDistance);
+				$(this).prev().html(floorNumberPlusOne);
 			}
 		}
 
@@ -224,6 +242,7 @@ Chart.prototype.adjustmentsInit = function() {
 				moveDistance = -(chart.getElementYCoord(chart.set[indexOne], indexOne) - markerY);
 				chart.set[indexOne].transform("...t0," + moveDistance);
 				chart.set[indexTwo].transform("...t0," + moveDistance);
+				$(this).prev().html(numberPlusOne);
 			}
 		}
 
@@ -234,14 +253,20 @@ Chart.prototype.adjustmentsInit = function() {
 				markerY = chart.calculateMarkerY(decadeNumber, numberPlusOne);
 				moveDistance = -(chart.getElementYCoord(chart.set[index], index) - markerY);
 				chart.set[index].transform("...t0," + moveDistance);
+				$(this).prev().html(numberPlusOne);
 			}
 		}
 
 	});
-	$('.subtract').bind('click', function(e){
+	$('.subtract').on('touchstart', function(e){
+		e.preventDefault();
 		var numberMinusOne = parseInt($(this).next().html()) - 1;
-		$(this).next().html(numberMinusOne);
 		var label = $(this).attr('id');
+
+		if (chart.saveValue >= 1) {
+			chart.saveValue-=1;
+			var floorNumberMinusOne = 60/chart.saveValue;
+		}
 
 		if (label === "sub-correct") {
 			if (chart.set.length >= 2) {
@@ -250,6 +275,7 @@ Chart.prototype.adjustmentsInit = function() {
 				markerY = chart.calculateMarkerY(decadeNumber, numberMinusOne);
 				moveDistance = -(chart.getElementYCoord(chart.set[index], index) - markerY);
 				chart.set[index].transform("...t0," + moveDistance);
+				$(this).next().html(numberMinusOne);
 			}
 		}
 
@@ -258,9 +284,10 @@ Chart.prototype.adjustmentsInit = function() {
 			if (chart.set.length >= 1) {
 				decadeNumber = 3;
 				index = 0;
-				markerY = chart.calculateMarkerY(decadeNumber, numberMinusOne);
+				markerY = chart.calculateMarkerY(decadeNumber, chart.saveValue);
 				moveDistance = -(chart.getElementYCoord(chart.set[index], index) - markerY);
 				chart.set[index].transform("...t0," + moveDistance);
+				$(this).next().html(floorNumberMinusOne);
 			}
 		}
 
@@ -273,6 +300,7 @@ Chart.prototype.adjustmentsInit = function() {
 				moveDistance = -(chart.getElementYCoord(chart.set[indexOne], indexOne) - markerY);
 				chart.set[indexOne].transform("...t0," + moveDistance);
 				chart.set[indexTwo].transform("...t0," + moveDistance);
+				$(this).next().html(numberMinusOne);
 			}
 		}
 
@@ -283,6 +311,7 @@ Chart.prototype.adjustmentsInit = function() {
 				markerY = chart.calculateMarkerY(decadeNumber, numberMinusOne);
 				moveDistance = -(chart.getElementYCoord(chart.set[index], index) - markerY);
 				chart.set[index].transform("...t0," + moveDistance);
+				$(this).next().html(numberMinusOne);
 			}
 		}
 	});	
@@ -439,9 +468,21 @@ Chart.prototype.drawXAxis = function() {
 		var labelAttr = {
 			'text-anchor': 'end',
 		}
+		var floorAttr = {
+			'font-size': 11,
+			'text-anchor': 'start'
+		}
 
 		// draw the baseValue line on the chart for this decade
 		this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + this.baseTickLength, decadeBasePosition, lineAttrs);
+		if (decadeBaseValue === 1) {
+			this.drawLabel(lineEndX+70, decadeBasePosition, 1/decadeBaseValue+'"', floorAttr);
+			this.drawHorizontalLine(lineStartX, lineEndX+this.baseTickLength, decadeBasePosition, lineAttrs);
+		}
+		if (decadeBaseValue < 1) {
+			this.drawLabel(lineEndX+70, decadeBasePosition, 1/decadeBaseValue+"'", floorAttr);
+			this.drawHorizontalLine(lineStartX, lineEndX+this.baseTickLength, decadeBasePosition, lineAttrs);
+		}
 		// writes the number label for the grid line
 		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue, labelAttr);
 
@@ -486,12 +527,32 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 				'font-size': 10,
 				'text-anchor': 'end'
 			}
+			var floorAttr = {
+				'font-size': 11,
+				'text-anchor': 'start'
+			}
 			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue, labelAttr);
 			this.drawHorizontalLine(lineStartX - this.intermediateTickLength, lineEndX + this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+			if (lineValue < 1) {
+				this.drawLabel(lineEndX+70, intermediateLineYPosition, 1/lineValue +"'", floorAttr);
+				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+			}
 		}
 
 		else {
+			var floorAttr = {
+				'font-size': 11,
+				'text-anchor': 'start'
+			}
 			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
+			if (lineValue >=1 && lineValue <= 6) {
+				this.drawLabel(lineEndX+70, intermediateLineYPosition, 60/lineValue+'"', floorAttr);
+				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+			}
+			else if (lineValue === .002 || lineValue===.02 || lineValue===.2) {
+				this.drawLabel(lineEndX+70, intermediateLineYPosition, 1/lineValue +"'", floorAttr);
+				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+			}
 		}
 	}
 }
@@ -684,17 +745,21 @@ Chart.prototype.createTouchEvents = function(line, day) {
 
 		var markerX = chart.dayToXPosition(day);
 		var markerRadius = 5;
+		var floorValue = 60/roundedValue;
+		chart.saveValue = roundedValue;
 
 		// draw floor, floor must snap to grid
 		if (chart.set.length === 0) {
 			chart.drawMarker('floors', markerX, snapMarkerY);
-			$("#floors").html(Math.round(value * roundingFactor));
+			$("#floors").html(floorValue);
 		}
 
 		// draw trials, trials must snap to grid
 		else if (chart.set.length === 4) {
-			chart.drawMarker('trials', markerX, snapMarkerY);
-			$("#trials").html(Math.round(value * roundingFactor));
+			if (value * roundingFactor >= 1 && value * roundingFactor < 12) {
+				chart.drawMarker('trials', markerX, snapMarkerY);
+				$("#trials").html(Math.round(value * roundingFactor));
+			}
 		}
 
 		// draw corrects
@@ -723,6 +788,7 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		chart.set.remove();
 		chart.set.length = 0;
 		$('#adjustments').css("display", "none");
+		$('.input').html("");
 	});
 }
 
@@ -764,6 +830,15 @@ Chart.prototype.pointToValue = function(yPosition) {
 	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
 	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
 	var value = decadeBaseValue * Math.pow(10, percentAwayFromVBase);
+	return value;
+}
+
+Chart.prototype.pointToFloorValue = function(yPosition) {
+	var decadeNumber = 0;
+	var decadeBasePosition = decadeNumber * this.decadeHeight;
+	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
+	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
+	var value = 60/(decadeBaseValue * Math.pow(10, percentAwayFromVBase));
 	return value;
 }
 

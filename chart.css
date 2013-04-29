@@ -4,29 +4,19 @@ body {
 	line-height: 21px;
 }
 
-ul {
-	clear: both;
-}
-
 #draw {
 	margin: 0;
 	padding: 0;
-	/* remove default margins around draw div */
-	/*margin-top: -10px;
-	margin-left: -10px;*/
 }
 
 #adjustments {
-	padding: 20px;
   	display: none;
   	z-index: 10;
   	color: black;
-  	width: 200px;
-  	background-color: rgb(242,242,242);
+  	height: 60px;
+  	background: rgba(242,242,242,.7);
   	position: absolute;
-  	margin-left: auto;
-  	top: 0px;
-  	right: 0px;
+  	bottom: 0px;
 }
 
 .input {
@@ -35,26 +25,52 @@ ul {
 	background-color: white;
 	display: inline-block;
 	text-align: center;
+	line-height: 40px;
 }
 
 .seesay {
 	float: left;
 	text-align: left;
+	padding-left: 10px;
 }
 
 .colors {
-	float: right;
-	text-align: right;
+	float: left;
+	text-align: left;
+}
+
+.label {
+	padding-left: 20px;
+	padding-right: 4px;
 }
 
 h1 {
+	display: inline-block;
 	font-size: 24px;
-	line-height: 36px;
-	text-align: center;
+	line-height: 50px;
+	text-align: left;
+	padding-left: 20px;
+	float: left;
 }
 
 ul {
-	margin-top: 40px;
+	margin-top: 5px;
 	font-size: 18px;
-	line-height: 50px;
+	line-height: 18px;
+	float: left;
+}
+
+li {
+	float: left;
+	line-height: 40px;
+}
+
+img {
+	float: left;
+	display: inline-block;
+}
+
+p {
+	display: inline-block;
+	float: left;
 }
