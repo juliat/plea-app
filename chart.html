@@ -8,12 +8,17 @@
 		<script type="text/javascript" src="raphael-min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 		<script type="text/javascript" src="chart.js"></script>
+		<script type="text/javascript" src="ratefinder-chart.js"></script>
 		<script type="text/javascript" src="hammer.min.js"></script>
 
 		<!--Stops double tap from zooming and lets multitouch gestures work -->
 		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
 	</head>
 	<body>
+		<div id="type-of-chart">
+			<div id="behavior-chart">Behavior Chart</div>
+			<div id="scatterplot">Scatter Plot</div>
+		</div>
 		<div id="draw">
 		</div>
 		<div id="adjustments">
@@ -21,6 +26,10 @@
 			<!--<div class="seesay">see/say</div>
 			<div class="colors">colors</div>-->
       		<ul>
+      			<li class="label">Floor</li>
+	        	<li><img class="subtract" id="sub-floor" width="40" height="40" src="buttons/subtract.png" />
+	        		<p id="floors" class="input"></p>
+	        		<img class="add" id="add-floor" width="40" height="40" src="buttons/add.png" /></li>
 	        	<li class="label">Corrects</li>
 	        	<li><img class="subtract" id="sub-correct" width="40" height="40" src="buttons/subtract.png" />
 	        		<p id="corrects" class="input"></p>
@@ -29,10 +38,6 @@
 		        <li><img class="subtract" id="sub-error" width="40" height="40" src="buttons/subtract.png" />
 	        		<p id="errors" class="input"></p>
 	        		<img class="add" id="add-error" width="40" height="40" src="buttons/add.png" /></li>
-	        	<li class="label">Floor</li>
-	        	<li><img class="subtract" id="sub-floor" width="40" height="40" src="buttons/subtract.png" />
-	        		<p id="floors" class="input"></p>
-	        		<img class="add" id="add-floor" width="40" height="40" src="buttons/add.png" /></li>
 	        	<li class="label">Trials</li>
 	        	<li><img class="subtract" id="sub-trial" width="40" height="40" src="buttons/subtract.png" />
 	        		<p id="trials" class="input"></p>

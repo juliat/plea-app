@@ -1,22 +1,4 @@
-/* Chart Class 
- * ========================================================================= *
-*/
-
-// draw chart when window loads
-window.onload = function(){
-	$("#behavior-chart").click(function(){
-		var chart = new behaviorChart();
-		$("#type-of-chart").css("display","none");
-
-	});
-	$("#scatterplot").click(function(){
-		var chart = new Chart();
-		$("#type-of-chart").css("display","none");
-	});
-}
-
-// construct chart object
-function Chart() {
+function behaviorChart() {
 	this.numberOfDays = 140;
 	this.minExponent = -3;
 	this.maxExponent = 3;
@@ -37,33 +19,29 @@ function Chart() {
 						'value' : null
 				     },
 		'errors' :   {
-						'markerType' : 'cross',
+						'markerType' : 'filled-square',
 						'order': 2,
 						'value' : null
 				     },
 		'trials' :   {
-						'markerType' : 'empty-circle',
+						'markerType' : 'filled-triangle',
 						'order' : 3,
 						'value' : null
 				     },
 	};
 
 	this.markerStyles = {
-		'filled-circle' : 	{
-								'fill-opacity': 1,
-						   		'fill': '#000'
-						   	},
-		'line' : 			{ 
-								"stroke-width": "1",
-					 			"stroke": "#000000"
-					 		},
-		'cross' : 			{ 
-								"stroke-width": "1",
-				    			"stroke": "#000000"
-				    		},
-		'empty-circle' : 	{
-								'fill-opacity': 0
-							},
+		'filled-circle' : {'fill-opacity': 1,
+						   'fill': '#000'},
+		'line' : { "stroke-width": "1",
+					 "stroke": "#000000",
+					 "fill": '#000'},
+		'filled-square' : { "stroke-width": "1",
+				    "stroke": "#000000",
+				"fill": '#000'},
+		'filled-triangle' : {"stroke-width": "1",
+				    "stroke": "#000000",
+				"fill": '#000'},
 	};
 	
 	this.init();
@@ -72,9 +50,9 @@ function Chart() {
 	this.adjustmentsInit();
 }
 
-/* Initialize the chart */
-Chart.prototype.init = function() {
-	// initialize width and height of chart based on window size
+/* Initialize the behaviorChart */
+behaviorChart.prototype.init = function() {
+	// initialize width and height of behaviorChart based on window size
 	var width = $(window).width();
 	var height = $(window).height();
 	$("#draw").width(width);
@@ -86,31 +64,31 @@ Chart.prototype.init = function() {
 	// define active day, just put in 18 for now
 	this.activeDay = 18;
 
-	// get dimensions from jquery drawElement to define chart height, width and margins
+	// get dimensions from jquery drawElement to define behaviorChart height, width and margins
 	this.bottomMargin = this.drawElement.height() * 0.1;
 	this.topMargin = this.drawElement.height() * 0.05;
 
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.rightMargin = this.drawElement.width() * 0.05;
 
-	this.chartWidth = this.drawElement.width() - (this.leftMargin + this.rightMargin);
-	this.chartHeight = this.drawElement.height() - (this.bottomMargin + this.topMargin);
+	this.behaviorChartWidth = this.drawElement.width() - (this.leftMargin + this.rightMargin);
+	this.behaviorChartHeight = this.drawElement.height() - (this.bottomMargin + this.topMargin);
 
-	// set padding for number labels on chart
+	// set padding for number labels on behaviorChart
 	this.labelPadding = this.leftMargin * 0.15;	
 
 	// set tick lengths
 	this.baseTickLength = 8;
 	this.intermediateTickLength = 5;
 
-	// calculate height of a decade in pixels by dividing the chart height by
+	// calculate height of a decade in pixels by dividing the behaviorChart height by
 	// the number of decades
-	this.decadeHeight = this.chartHeight / this.numberOfDecades;
+	this.decadeHeight = this.behaviorChartHeight / this.numberOfDecades;
 
 	// store dom element
 	var drawDOMElement = document.getElementById('draw');
 
-	var chart = this;
+	var behaviorChart = this;
 	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
 	this.rectangle = this.paper.rect(0, 0, this.drawElement.width(), this.drawElement.height());  
@@ -126,45 +104,51 @@ Chart.prototype.init = function() {
 	this.drawYAxis();
 };
 
-Chart.prototype.drawMarker = function(valueType, x, y) {
+behaviorChart.prototype.drawMarker = function(valueType, x, y) {
 	var markToDraw = this.markers[valueType]['markerType']; // get the mark to draw based on the valueType. e.g., corrects => filled circle
 	// draws corrects marker
 	if (markToDraw === 'filled-circle') {
-		this.drawCircle(x, y, true);
+		this.drawCircle(x, y);
 	}
 	// draws floor marker
 	if (markToDraw === 'line') {
 		this.drawLine(x, y);
 	}
 	// draws errors marker
-	if (markToDraw === 'cross') {
-		this.drawCross(x, y);
+	if (markToDraw === 'filled-square') {
+		this.drawSquare(x, y);
 	}
 	// draws trials marker
-	if (markToDraw === 'empty-circle') {
-		this.drawCircle(x, y, false);
+	if (markToDraw === 'filled-triangle') {
+		this.drawTriangle(x, y);
 	}
 }
 
-Chart.prototype.drawCircle = function (x, y, isFilled) {
+behaviorChart.prototype.drawSquare = function (x, y) {
+	var newSquare = this.paper.rect(x-this.markerRadius, y-this.markerRadius, 2*this.markerRadius, 2*this.markerRadius);
+	var behaviorChart = this;
+	var squareMarkerStyles = this.markerStyles[this.markers['errors']['markerType']];
+	newSquare.attr(squareMarkerStyles);
+	this.markers['errors']['value'] = newSquare;
+}
+
+behaviorChart.prototype.drawTriangle = function (x, y) {
+	var trianglePath = 'M '+(x-this.markerRadius)+' '+(y+this.markerRadius)+' l '+(this.markerRadius)+' '+(-this.markerRadius*2)+' l '+(this.markerRadius)+' '+(this.markerRadius*2)+'Z';
+	var newTriangle = this.paper.path(trianglePath);
+	var triangleMarkerStyles = this.markerStyles[this.markers['trials']['markerType']];
+	newTriangle.attr(triangleMarkerStyles);
+	this.markers['trials']['value'] = newTriangle
+}
+
+behaviorChart.prototype.drawCircle = function (x, y) {
 	// create new circle with new position
 	var newCircle = this.paper.circle(x, y, this.markerRadius);
-	// draws correct marker
-	if (isFilled === true) {
-		var correctMarkerStyles = this.markerStyles[this.markers['corrects']['markerType']];
-		newCircle.attr(correctMarkerStyles);
-		//this.set.push(newCircle);
-		this.markers['corrects']['value'] = newCircle;
-	}
-	// draws trial marker
-	else {
-		var trialMarkerStyles = this.markerStyles[this.markers['trials']['markerType']];
-		newCircle.attr(trialMarkerStyles);
-		this.markers['trials']['value'] = newCircle;
-	}
+	var circleMarkerStyles = this.markerStyles[this.markers['corrects']['markerType']];
+	newCircle.attr(circleMarkerStyles);
+	this.markers['corrects']['value'] = newCircle;
 }
 
-Chart.prototype.drawLine = function (x, y) {
+behaviorChart.prototype.drawLine = function (x, y) {
 	var linePath = 'M '+(x-this.markerRadius)+' '+y+' l '+(2*this.markerRadius)+' 0';
 	var newLine = this.paper.path(linePath);
 	var floorMarkerStyles = this.markerStyles[this.markers['floors']['markerType']];
@@ -172,21 +156,7 @@ Chart.prototype.drawLine = function (x, y) {
 	this.markers['floors']['value'] = newLine;
 }
 
-Chart.prototype.drawCross = function (x, y) {
-	var crossPathOne = 'M '+(x-this.markerRadius)+' '+(y-this.markerRadius)+' l '+(2*this.markerRadius)+' '+(2*this.markerRadius);
-	var crossPathTwo = 'M '+(x-this.markerRadius)+' '+(y+this.markerRadius)+' l '+(2*this.markerRadius)+' '+(-2*this.markerRadius);
-	var crossLineOne = this.paper.path(crossPathOne);
-	var crossLineTwo = this.paper.path(crossPathTwo);
-	var errorMarkerStyles = this.markerStyles[this.markers['errors']['markerType']];
-	crossLineOne.attr(errorMarkerStyles);
-	crossLineTwo.attr(errorMarkerStyles);
-	var errorsSet = this.paper.set();
-	errorsSet.push(crossLineOne);
-	errorsSet.push(crossLineTwo);
-	this.markers['errors']['value'] = errorsSet;
-}
-
-Chart.prototype.editMarker = function(markerType, newValue) {
+behaviorChart.prototype.editMarker = function(markerType, newValue) {
 	var decadeNumber;
 	var markerY; // y position of the marker
 	var markerX = this.dayToXPosition(this.activeDay); // x position of the marker
@@ -210,12 +180,12 @@ Chart.prototype.editMarker = function(markerType, newValue) {
 	}
 }
 
-Chart.prototype.getElementXCoord = function(element, index) {
+behaviorChart.prototype.getElementXCoord = function(element, index) {
 	var x = this.set[index].getBBox().x + this.markerRadius;
 	return x;
 }
 
-Chart.prototype.getElementYCoord = function(element, markerType) {
+behaviorChart.prototype.getElementYCoord = function(element, markerType) {
 	if (markerType === "floor") {
 		var y = element.getBBox().y;
 	}
@@ -225,8 +195,8 @@ Chart.prototype.getElementYCoord = function(element, markerType) {
 	return y;
 }
 
-Chart.prototype.adjustmentsInit = function() {
-	var chart = this;
+behaviorChart.prototype.adjustmentsInit = function() {
+	var behaviorChart = this;
 
 	// set the height of the # adjustments div to be the height of the window
 	$('#adjustments').width($(window).width()); 
@@ -237,29 +207,29 @@ Chart.prototype.adjustmentsInit = function() {
 		var label = $(this).attr('id'); // get the id of the div that was clicked
 
 		if (label === "add-correct") {
-			if (chart.markers['corrects']['value'] !== null) {
-				chart.editMarker('corrects', numberPlusOne);
+			if (behaviorChart.markers['corrects']['value'] !== null) {
+				behaviorChart.editMarker('corrects', numberPlusOne);
 				$(this).prev().html(numberPlusOne);
 			}
 		}
 
 		if (label === "add-floor") {
-			if (chart.markers['floors']['value'] !== null) {
-				chart.editMarker('floors', numberPlusOne);
+			if (behaviorChart.markers['floors']['value'] !== null) {
+				behaviorChart.editMarker('floors', numberPlusOne);
 				$(this).prev().html(numberPlusOne);
 			}
 		}
 
 		if (label === "add-error") {
-			if (chart.markers['errors']['value'] !== null) {
-				chart.editMarker('errors', numberPlusOne);
+			if (behaviorChart.markers['errors']['value'] !== null) {
+				behaviorChart.editMarker('errors', numberPlusOne);
 				$(this).prev().html(numberPlusOne);
 			}
 		}
 
 		if (label === "add-trial") {
-			if (chart.markers['trials']['value'] !== null) {
-				chart.editMarker('trials', numberPlusOne);
+			if (behaviorChart.markers['trials']['value'] !== null) {
+				behaviorChart.editMarker('trials', numberPlusOne);
 				$(this).prev().html(numberPlusOne);
 			}
 		}
@@ -271,30 +241,30 @@ Chart.prototype.adjustmentsInit = function() {
 		var label = $(this).attr('id');
 
 		if (label === "sub-correct") {
-			if (chart.markers['corrects']['value'] !== null) {
-				chart.editMarker('corrects', numberMinusOne);
+			if (behaviorChart.markers['corrects']['value'] !== null) {
+				behaviorChart.editMarker('corrects', numberMinusOne);
 				$(this).next().html(numberMinusOne);
 			}
 		}
 
 		if (label === "sub-floor") {
 			// only do something if a floor is in the set, floor is in position index 0 in aray
-			if (chart.markers['floors']['value'] !== null) {
-				chart.editMarker('floors', numberMinusOne);
+			if (behaviorChart.markers['floors']['value'] !== null) {
+				behaviorChart.editMarker('floors', numberMinusOne);
 				$(this).next().html(numberMinusOne);
 			}
 		}
 
 		if (label === "sub-error") {
-			if (chart.markers['errors']['value'] !== null) {
-				chart.editMarker('errors', numberMinusOne);
+			if (behaviorChart.markers['errors']['value'] !== null) {
+				behaviorChart.editMarker('errors', numberMinusOne);
 				$(this).next().html(numberMinusOne);
 			}
 		}
 
 		if (label === "sub-trial") {
-			if (chart.markers['trials']['value'] !== null) {
-				chart.editMarker('trials', numberMinusOne);
+			if (behaviorChart.markers['trials']['value'] !== null) {
+				behaviorChart.editMarker('trials', numberMinusOne);
 				$(this).next().html(numberMinusOne);
 			}
 		}
@@ -302,24 +272,24 @@ Chart.prototype.adjustmentsInit = function() {
 }
 
 
-// draws the lines on the x axis of the chart
-Chart.prototype.drawXAxis = function() {
+// draws the lines on the x axis of the behaviorChart
+behaviorChart.prototype.drawXAxis = function() {
 	// for each decade, draw the lines within that decade on the log scale
 	var i;
 
 	// these variables define the x positions for the start and end of each line
 	var lineStartX = this.leftMargin;
-	var lineEndX = this.chartWidth;
-	var chartBottomY = this.topMargin + this.chartHeight;
+	var lineEndX = this.behaviorChartWidth;
+	var behaviorChartBottomY = this.topMargin + this.behaviorChartHeight;
 
-	// a decade is the section between two exponents of ten on the chart. 
+	// a decade is the section between two exponents of ten on the behaviorChart. 
 	// For example, a decade would be from 1-10 or 0.001-0.01.
 	for (i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
-		var decadeBasePosition = chartBottomY - (decadeNumber * this.decadeHeight);
+		var decadeBasePosition = behaviorChartBottomY - (decadeNumber * this.decadeHeight);
 
 		var numDigits = 3;
 		var lineAttrs = {
@@ -336,7 +306,7 @@ Chart.prototype.drawXAxis = function() {
 			'text-anchor': 'start'
 		}
 
-		// draw the baseValue line on the chart for this decade
+		// draw the baseValue line on the behaviorChart for this decade
 		this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + this.baseTickLength, decadeBasePosition, lineAttrs);
 		if (decadeBaseValue === 1) {
 			this.drawLabel(lineEndX+70, decadeBasePosition, 1/decadeBaseValue+'"', floorAttr);
@@ -365,7 +335,7 @@ Chart.prototype.drawXAxis = function() {
 
 
 // get y positions for and draw lines for values in between the high and the low
-Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX) {
+behaviorChart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX) {
 	var intermediateLineYPosition;
 
 	for (var j = 2; j < 10; j++) {
@@ -384,7 +354,7 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 		};
 
 		// only draw line with ticks and labels on the fifth line in the decade 
-		// (this is just how the chart is designed)
+		// (this is just how the behaviorChart is designed)
 		if (j === 5) {
 			var labelAttr = {
 				'font-size': 10,
@@ -421,7 +391,7 @@ Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, 
 }
 
  
-Chart.prototype.drawLabel = function(x, y, lineValue, labelAttr) {
+behaviorChart.prototype.drawLabel = function(x, y, lineValue, labelAttr) {
 	var label = this.paper.text(x, y, lineValue);
 
 	// default attributes for label
@@ -437,8 +407,8 @@ Chart.prototype.drawLabel = function(x, y, lineValue, labelAttr) {
 }
 
 
-// takes a value and coverts it to a y position on the chart
-Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decadeBaseValue) {
+// takes a value and coverts it to a y position on the behaviorChart
+behaviorChart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decadeBaseValue) {
 	var decadeProportion = 1.0 * lineValue/decadeBaseValue;
 	var logDecadeProportion = log10(decadeProportion);
 	var offsetFromBase = this.decadeHeight * logDecadeProportion;
@@ -446,19 +416,19 @@ Chart.prototype.valueToYPosition = function(baseLineYPosition, lineValue, decade
 	return y;
 }
 
-Chart.prototype.getDecadeBasePosition = function(decadeNumber) {
-	var chartBottomY = this.topMargin + this.chartHeight;
-	var position = chartBottomY - (decadeNumber * this.decadeHeight);
+behaviorChart.prototype.getDecadeBasePosition = function(decadeNumber) {
+	var behaviorChartBottomY = this.topMargin + this.behaviorChartHeight;
+	var position = behaviorChartBottomY - (decadeNumber * this.decadeHeight);
 	return position;
 }
 
-Chart.prototype.getDecadeBaseValue = function(decadeNumber) {
+behaviorChart.prototype.getDecadeBaseValue = function(decadeNumber) {
 	var decadeExponent = decadeNumber + this.minExponent;
 	var value = Math.pow(10, decadeExponent);
 	return value;
 }
 
-Chart.prototype.calculateMarkerY = function(decadeNumber, value, markerType) {
+behaviorChart.prototype.calculateMarkerY = function(decadeNumber, value, markerType) {
 	var decadeBasePosition = this.getDecadeBasePosition(decadeNumber);
 	var decadeBaseValue = this.getDecadeBaseValue(decadeNumber);
 	var markerY = this.valueToYPosition(decadeBasePosition, value * decadeBaseValue, decadeBaseValue);
@@ -470,7 +440,7 @@ Chart.prototype.calculateMarkerY = function(decadeNumber, value, markerType) {
 	}
 }
 
-Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
+behaviorChart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaY = 0; // zero because we don't want the line to be slanted
 	
@@ -495,12 +465,12 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
          });
 }
 
-// draw regularly spaced lines for the number of days in the chart
-Chart.prototype.drawYAxis = function() {
-	var spacing = this.chartWidth/this.numberOfDays;
+// draw regularly spaced lines for the number of days in the behaviorChart
+behaviorChart.prototype.drawYAxis = function() {
+	var spacing = this.behaviorChartWidth/this.numberOfDays;
 
 	var lineStartY = this.topMargin; // - roundingErrorRoom;
-	var lineEndY = lineStartY + this.chartHeight;
+	var lineEndY = lineStartY + this.behaviorChartHeight;
 
 	var startX = this.leftMargin;
 	var labelAttr;
@@ -556,7 +526,7 @@ Chart.prototype.drawYAxis = function() {
 	}
 }
 
-Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day) {
+behaviorChart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaX = 0; // zero because we don't want the line to be slanted
 	var deltaY = y2 - y1;
@@ -583,14 +553,14 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 }
 
 // function that draws points on the 'today' line when there is a touch input
-Chart.prototype.createTouchEvents = function(line, day) {
-	var chart = this;
+behaviorChart.prototype.createTouchEvents = function(line, day) {
+	var behaviorChart = this;
 	var counter = 0;
-	chart.hammertime.on("tap", function(e) {
+	behaviorChart.hammertime.on("tap", function(e) {
 		// draw point on active day line
-		var chartBottomY = chart.chartHeight + chart.topMargin;
-		var y = chartBottomY - event.y;
-		var value = chart.pointToValue(y);
+		var behaviorChartBottomY = behaviorChart.behaviorChartHeight + behaviorChart.topMargin;
+		var y = behaviorChartBottomY - event.y;
+		var value = behaviorChart.pointToValue(y);
 		// create a rounding factor to snap touch event to nearest horizontal line coordinate
 		var roundingFactor;
 		if (value >= 0 && value < 0.01) roundingFactor = 1000; 
@@ -603,39 +573,39 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		
 
 		// converting back from value to y-coordinate
-		var decadeNumber = chart.findDecade(y);
-		var decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-		var decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
-		var snapMarkerY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
-		var markerY = chart.valueToYPosition(decadeBasePosition, value, decadeBaseValue);
+		var decadeNumber = behaviorChart.findDecade(y);
+		var decadeBasePosition = behaviorChartBottomY - (decadeNumber * behaviorChart.decadeHeight);
+		var decadeBaseValue = behaviorChart.getDecadeBaseValue(decadeNumber);
+		var snapMarkerY = behaviorChart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
+		var markerY = behaviorChart.valueToYPosition(decadeBasePosition, value, decadeBaseValue);
 
-		var markerX = chart.dayToXPosition(day);
+		var markerX = behaviorChart.dayToXPosition(day);
 		var markerRadius = 5;
 
 		// draw floor, floor must snap to grid
 		if (counter === 0) {
-			chart.drawMarker('floors', markerX, snapMarkerY);
+			behaviorChart.drawMarker('floors', markerX, snapMarkerY);
 			$("#floors").html(Math.round(value));
 			counter+=1;
 		}
 
 		// draw trials, trials must snap to grid
 		else if (counter === 3) {
-			chart.drawMarker('trials', markerX, snapMarkerY);
+			behaviorChart.drawMarker('trials', markerX, snapMarkerY);
 			$("#trials").html(Math.round(value * roundingFactor));
 			counter+=1;
 		}
 
 		// draw corrects
 		else if (counter === 1) {
-			chart.drawMarker('corrects', markerX, markerY);
+			behaviorChart.drawMarker('corrects', markerX, markerY);
 			$("#corrects").html(Math.round(value));
 			counter+=1;
 		}
 
 		// draw mistakes
 		else if (counter === 2) {
-			chart.drawMarker('errors', markerX, markerY);
+			behaviorChart.drawMarker('errors', markerX, markerY);
 			$("#errors").html(Math.round(value));
 			counter+=1;
 		}
@@ -651,28 +621,28 @@ Chart.prototype.createTouchEvents = function(line, day) {
 }
 
 // converts a day (in int form, between 0 and 140 and 
-// returns the x coordinate of that day line on the chart)
-Chart.prototype.dayToXPosition = function(day) {
+// returns the x coordinate of that day line on the behaviorChart)
+behaviorChart.prototype.dayToXPosition = function(day) {
 	if ((day < 0) || (day > this.numberOfDays)) {
 		return 'day out of range';
 	}
 	// compute based on margins and spacing. add variables from the drawYaxis function to the
-	// chart object if need be
+	// behaviorChart object if need be
 	else {
 		var startX = this.leftMargin;
-		var spacing = this.chartWidth/this.numberOfDays;
+		var spacing = this.behaviorChartWidth/this.numberOfDays;
 		var xValue = startX + day*spacing;
 		return xValue;
 	}
 }
 
-// plot historical data on the chart (should call helper methods for plotting data points on each day)
-Chart.prototype.drawHistoricalData = function() {
+// plot historical data on the behaviorChart (should call helper methods for plotting data points on each day)
+behaviorChart.prototype.drawHistoricalData = function() {
 
 }
 
 // should take in a day as an int between 0 and 140 and use that to determine where to draw the point vertically
-Chart.prototype.drawValue = function(day, value) {
+behaviorChart.prototype.drawValue = function(day, value) {
 	var cx = day;
 	var cy = this.valueToYPosition(value);
 	var radius = 1; //default
@@ -680,8 +650,8 @@ Chart.prototype.drawValue = function(day, value) {
 }
 
 
-// takes a point on the chart and converts it to a semantic numeric value
-Chart.prototype.pointToValue = function(yPosition) {
+// takes a point on the behaviorChart and converts it to a semantic numeric value
+behaviorChart.prototype.pointToValue = function(yPosition) {
 	// get the base position (we're talking pixels) by using the value to position funciton on the base position
 	var decadeNumber = this.findDecade(yPosition);
 	var decadeBasePosition = decadeNumber * this.decadeHeight;
@@ -691,7 +661,7 @@ Chart.prototype.pointToValue = function(yPosition) {
 	return value;
 }
 
-Chart.prototype.pointToFloorValue = function(yPosition) {
+behaviorChart.prototype.pointToFloorValue = function(yPosition) {
 	var decadeNumber = 0;
 	var decadeBasePosition = decadeNumber * this.decadeHeight;
 	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
@@ -701,7 +671,7 @@ Chart.prototype.pointToFloorValue = function(yPosition) {
 }
 
 // takes a point and finds what decade you are in based on that point
-Chart.prototype.findDecade = function(point) {
+behaviorChart.prototype.findDecade = function(point) {
 	var decadeNumber = Math.floor(point/this.decadeHeight);
 	return decadeNumber;
 }
@@ -712,4 +682,3 @@ Chart.prototype.findDecade = function(point) {
 function log10(value) {
   return Math.log(value) / Math.LN10;
 }
-
