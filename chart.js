@@ -24,7 +24,6 @@ function Chart() {
 	this.drawElement = $('#draw'); 
 	this.markerRadius = 5 ;
 
-	// to replace 'set'
 	this.markers = {
 		'corrects' : {
 						'markerType' : 'filled-circle',
@@ -153,7 +152,6 @@ Chart.prototype.drawCircle = function (x, y, isFilled) {
 	if (isFilled === true) {
 		var correctMarkerStyles = this.markerStyles[this.markers['corrects']['markerType']];
 		newCircle.attr(correctMarkerStyles);
-		//this.set.push(newCircle);
 		this.markers['corrects']['value'] = newCircle;
 	}
 	// draws trial marker
@@ -245,8 +243,15 @@ Chart.prototype.adjustmentsInit = function() {
 
 		if (label === "add-floor") {
 			if (chart.markers['floors']['value'] !== null) {
-				chart.editMarker('floors', numberPlusOne);
-				$(this).prev().html(numberPlusOne);
+				chart.floorValue += 1;
+				chart.editMarker('floors', chart.floorValue);
+				if (chart.floorValue > 1) {
+					chart.convertedFloorValue = 60/chart.floorValue;
+				}
+				else {
+					chart.convertedFloorValue = 1/chart.floorValue;
+				}
+				$(this).prev().html(chart.convertedFloorValue);
 			}
 		}
 
@@ -280,8 +285,15 @@ Chart.prototype.adjustmentsInit = function() {
 		if (label === "sub-floor") {
 			// only do something if a floor is in the set, floor is in position index 0 in aray
 			if (chart.markers['floors']['value'] !== null) {
-				chart.editMarker('floors', numberMinusOne);
-				$(this).next().html(numberMinusOne);
+				chart.floorValue -= 1;
+				chart.editMarker('floors', chart.floorValue);
+				if (chart.floorValue > 1) {
+					chart.convertedFloorValue = 60/chart.floorValue;
+				}
+				else {
+					chart.convertedFloorValue = 1/chart.floorValue;
+				}
+				$(this).next().html(chart.convertedFloorValue);
 			}
 		}
 
@@ -615,7 +627,14 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		// draw floor, floor must snap to grid
 		if (counter === 0) {
 			chart.drawMarker('floors', markerX, snapMarkerY);
-			$("#floors").html(Math.round(value));
+			chart.floorValue = Math.round(value); // value of floor before converted to time
+			if (chart.floorValue > 1) {
+				chart.convertedFloorValue = 60/chart.floorValue;
+			}
+			else {
+				chart.convertedFloorValue = 1/chart.floorValue;
+			}
+			$("#floors").html(chart.floorValue);
 			counter+=1;
 		}
 
@@ -688,15 +707,6 @@ Chart.prototype.pointToValue = function(yPosition) {
 	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
 	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
 	var value = decadeBaseValue * Math.pow(10, percentAwayFromVBase);
-	return value;
-}
-
-Chart.prototype.pointToFloorValue = function(yPosition) {
-	var decadeNumber = 0;
-	var decadeBasePosition = decadeNumber * this.decadeHeight;
-	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
-	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
-	var value = 60/(decadeBaseValue * Math.pow(10, percentAwayFromVBase));
 	return value;
 }
 

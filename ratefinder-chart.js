@@ -32,16 +32,16 @@ function behaviorChart() {
 
 	this.markerStyles = {
 		'filled-circle' : {'fill-opacity': 1,
-						   'fill': '#000'},
+						   },
 		'line' : { "stroke-width": "1",
 					 "stroke": "#000000",
 					 "fill": '#000'},
 		'filled-square' : { "stroke-width": "1",
 				    "stroke": "#000000",
-				"fill": '#000'},
+				},
 		'filled-triangle' : {"stroke-width": "1",
 				    "stroke": "#000000",
-				"fill": '#000'},
+				},
 	};
 	
 	this.init();
@@ -157,27 +157,13 @@ behaviorChart.prototype.drawLine = function (x, y) {
 }
 
 behaviorChart.prototype.editMarker = function(markerType, newValue) {
-	var decadeNumber;
-	var markerY; // y position of the marker
+	var decadeNumber = 0;
+	var decadeBasePosition = this.calculateMarkerY(0, 3);
+	var decadeBaseValue = this.getDecadeBaseValue(decadeNumber);
+	var markerY = this.valueToYPosition(decadeBasePosition, newValue * decadeBaseValue, decadeBaseValue);
 	var markerX = this.dayToXPosition(this.activeDay); // x position of the marker
-	var moveDistance; 
-
-	// trials has a base decadeNumber of 0 while the other markers have a base decadeNumber of 3
-	if (markerType === 'trials') { decadeNumber = 0; }
-	else { decadeNumber = 3; }
-
-	// the errors marker is a set of two raphael lines and must do transformation on each line individually
-	if (markerType === 'errors') {
-		markerY = this.calculateMarkerY(decadeNumber, newValue, markerType);
-		moveDistance = -(this.getElementYCoord(this.markers[markerType]['value'][0], markerType) - markerY);
-		this.markers[markerType]['value'][0].transform("...t0," + moveDistance);
-		this.markers[markerType]['value'][1].transform("...t0," + moveDistance);
-	}
-	else {
-		markerY = this.calculateMarkerY(decadeNumber, newValue, markerType);
-		moveDistance = -(this.getElementYCoord(this.markers[markerType]['value'], markerType) - markerY);
-		this.markers[markerType]['value'].transform("...t0," + moveDistance);
-	}
+	var moveDistance = -(this.getElementYCoord(this.markers[markerType]['value'], markerType) - markerY);
+	this.markers[markerType]['value'].transform("...t0," + moveDistance);
 }
 
 behaviorChart.prototype.getElementXCoord = function(element, index) {
@@ -214,10 +200,6 @@ behaviorChart.prototype.adjustmentsInit = function() {
 		}
 
 		if (label === "add-floor") {
-			if (behaviorChart.markers['floors']['value'] !== null) {
-				behaviorChart.editMarker('floors', numberPlusOne);
-				$(this).prev().html(numberPlusOne);
-			}
 		}
 
 		if (label === "add-error") {
@@ -248,11 +230,6 @@ behaviorChart.prototype.adjustmentsInit = function() {
 		}
 
 		if (label === "sub-floor") {
-			// only do something if a floor is in the set, floor is in position index 0 in aray
-			if (behaviorChart.markers['floors']['value'] !== null) {
-				behaviorChart.editMarker('floors', numberMinusOne);
-				$(this).next().html(numberMinusOne);
-			}
 		}
 
 		if (label === "sub-error") {
@@ -558,7 +535,7 @@ behaviorChart.prototype.createTouchEvents = function(line, day) {
 	var counter = 0;
 	behaviorChart.hammertime.on("tap", function(e) {
 		// draw point on active day line
-		var behaviorChartBottomY = behaviorChart.behaviorChartHeight + behaviorChart.topMargin;
+		var behaviorChartBottomY = behaviorChart.calculateMarkerY(0, 3);
 		var y = behaviorChartBottomY - event.y;
 		var value = behaviorChart.pointToValue(y);
 		// create a rounding factor to snap touch event to nearest horizontal line coordinate
@@ -584,13 +561,17 @@ behaviorChart.prototype.createTouchEvents = function(line, day) {
 
 		// draw floor, floor must snap to grid
 		if (counter === 0) {
-			behaviorChart.drawMarker('floors', markerX, snapMarkerY);
-			$("#floors").html(Math.round(value));
+			var floorPositionY = behaviorChart.calculateMarkerY(0, 3);
+			behaviorChart.drawMarker('floors', markerX, floorPositionY);
+			behaviorChart.floorValue = '6h';
+			$("#floors").html(behaviorChart.floorValue);
+			behaviorChart.createRateFinder(floorPositionY);
 			counter+=1;
 		}
 
 		// draw trials, trials must snap to grid
 		else if (counter === 3) {
+			roundingFactor = 1000;
 			behaviorChart.drawMarker('trials', markerX, snapMarkerY);
 			$("#trials").html(Math.round(value * roundingFactor));
 			counter+=1;
@@ -598,15 +579,17 @@ behaviorChart.prototype.createTouchEvents = function(line, day) {
 
 		// draw corrects
 		else if (counter === 1) {
+			roundingFactor = 1000;
 			behaviorChart.drawMarker('corrects', markerX, markerY);
-			$("#corrects").html(Math.round(value));
+			$("#corrects").html(Math.round(value * roundingFactor));
 			counter+=1;
 		}
 
 		// draw mistakes
 		else if (counter === 2) {
+			roundingFactor = 1000;
 			behaviorChart.drawMarker('errors', markerX, markerY);
-			$("#errors").html(Math.round(value));
+			$("#errors").html(Math.round(value * roundingFactor));
 			counter+=1;
 		}
 
@@ -661,20 +644,87 @@ behaviorChart.prototype.pointToValue = function(yPosition) {
 	return value;
 }
 
-behaviorChart.prototype.pointToFloorValue = function(yPosition) {
-	var decadeNumber = 0;
-	var decadeBasePosition = decadeNumber * this.decadeHeight;
-	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
-	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
-	var value = 60/(decadeBaseValue * Math.pow(10, percentAwayFromVBase));
-	return value;
-}
-
 // takes a point and finds what decade you are in based on that point
 behaviorChart.prototype.findDecade = function(point) {
 	var decadeNumber = Math.floor(point/this.decadeHeight);
 	return decadeNumber;
 }
+
+behaviorChart.prototype.createRateFinder = function(floorPositionY) {
+	var lineOriginX = this.dayToXPosition(this.activeDay);
+	var rateFinderBottomY = floorPositionY;
+
+	var rectAttrs = {
+		'fill' : '#ffffff',
+		'stroke-width' : 0,
+		'fill-opacity' : .5,
+	};
+
+	var clearRect = this.paper.rect(lineOriginX - 60, 270, 80, 330);
+	clearRect.attr(rectAttrs);
+	for (i = 0; i < 3; i++) {
+		var decadeBaseValue = Math.pow(10, this.minExponent + i);
+		var decadeNumber = i;
+		var decadeBasePosition = rateFinderBottomY - (decadeNumber * this.decadeHeight);
+		var lineAttrs = {
+			'weight' : '1',
+			'color' : '#1D2951',
+		}
+		var labelAttrs = {
+			'text-anchor' : 'end',
+			'color' : '#1D2951',
+		}
+		this.drawLabel(lineOriginX - this.baseTickLength - this.labelPadding, decadeBasePosition, decadeBaseValue*1000, labelAttrs);
+		if (i > 0) {
+			this.drawHorizontalLine(lineOriginX - this.baseTickLength, this.baseTickLength*2, decadeBasePosition, lineAttrs);
+		}
+
+		if (decadeNumber === 2) {
+		    var topDecadePosition = decadeBasePosition - this.decadeHeight;
+		    var topDecadeValue = Math.pow(10, this.minExponent + i + 1);
+		    this.drawHorizontalLine(lineOriginX - this.baseTickLength, this.baseTickLength*2, topDecadePosition, lineAttrs);
+		    this.drawLabel(lineOriginX - this.baseTickLength - this.labelPadding, topDecadePosition, topDecadeValue*1000, labelAttrs);
+		}
+
+		this.drawIntermediateRates(decadeNumber, decadeBaseValue, decadeBasePosition, lineOriginX-this.intermediateTickLength, this.intermediateTickLength*2)
+	}
+}
+
+// get y positions for and draw lines for values in between the high and the low
+behaviorChart.prototype.drawIntermediateRates = function(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX) {
+	var intermediateLineYPosition;
+	var lineOriginX = this.dayToXPosition(this.activeDay);
+
+	for (var j = 2; j < 10; j++) {
+		var lineValue = j * decadeBaseValue;
+		intermediateLineYPosition = this.valueToYPosition(decadeBasePosition, lineValue, decadeBaseValue);
+		
+		lineAttrs = {
+			'weight': '0.4',
+			'color' : '#1D2951',
+		};
+
+		if (j === 5) {
+			var labelAttr = {
+				'font-size': 10,
+				'text-anchor': 'end',
+				'color': '#1D2951'
+			}
+			var floorAttr = {
+				'font-size': 11,
+				'text-anchor': 'start',
+				'color': '#1D2951'
+			}
+			this.drawLabel(lineOriginX - this.baseTickLength - this.labelPadding, intermediateLineYPosition, lineValue*1000, labelAttr);
+			this.drawHorizontalLine(lineStartX - 2, lineEndX + 4, intermediateLineYPosition, lineAttrs);
+		}
+
+		else {
+			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
+		}
+	}
+}
+
 
 // note: for sooming maybe only draw decades
 

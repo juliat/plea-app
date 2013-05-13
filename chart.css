@@ -4,6 +4,14 @@ body {
 	line-height: 21px;
 }
 
+.adjustment-section {
+	width: 150px;
+	float: left;
+	display: inline-block;
+	height: 60px;
+	position: relative;
+}
+
 #draw {
 	margin: 0;
 	padding: 0;
@@ -30,9 +38,15 @@ body {
   	bottom: 0px;
 }
 
+.adjustments-div {
+	position: absolute;
+	top: 30px;
+	left: 0px;
+}
+
 .input {
 	width: 40px;
-	height: 40px;
+	height: 30px;
 	background-color: white;
 	display: inline-block;
 	text-align: center;
@@ -51,21 +65,19 @@ body {
 }
 
 .label {
-	padding-left: 20px;
-	padding-right: 4px;
+	margin-top: 4px;
+	margin-bottom: 4px;
 }
 
-h1 {
+h4 {
 	display: inline-block;
-	font-size: 24px;
-	line-height: 50px;
 	text-align: left;
 	padding-left: 20px;
 	float: left;
 }
 
 ul {
-	margin-top: 5px;
+	margin: 0px !important;
 	font-size: 18px;
 	line-height: 18px;
 	float: left;
@@ -76,7 +88,7 @@ li {
 	line-height: 40px;
 }
 
-img {
+img, button {
 	float: left;
 	display: inline-block;
 }
@@ -84,4 +96,5 @@ img {
 p {
 	display: inline-block;
 	float: left;
+	margin: 0px !important;
 }
