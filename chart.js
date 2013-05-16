@@ -21,30 +21,49 @@ function Chart() {
 	this.minExponent = -3;
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
-	this.drawElement = $('#draw'); 
-	this.markerRadius = 5 ;
+	this.drawElement = $('#draw');
+	this.markerRadius = 5;
+
+	this.phaselineRadius = 40;
+	this.phaselineTopLength = 440;
+	this.phaselineBottomLength = 80;
+	this.phaselineStartY = 60;
 
 	this.markers = {
 		'corrects' : {
 						'markerType' : 'filled-circle',
 						'order' : 1,
-						'value' : null
+						'value' : null, //numeric value of marker
+						'marker' : null, //raphael object that is drawn... make transformations to this
+						'note' : null
 					 },
 		'floors' :   {
 						'markerType' : 'line',
 						'order' : 0,
-						'value' : null
+						'value' : null,
+						'marker' : null,
+						'note' : null,
+						'measure' : null //either s, m, h (seconds, minutes, hours)
 				     },
 		'errors' :   {
 						'markerType' : 'cross',
 						'order': 2,
-						'value' : null
+						'value' : null,
+						'marker' : null,
+						'note' : null
 				     },
 		'trials' :   {
 						'markerType' : 'empty-circle',
 						'order' : 3,
-						'value' : null
+						'value' : null,
+						'marker' : null,
+						'note' : null
 				     },
+	};
+
+	this.phaseline = {
+		'value' : null,
+		'note' : null,
 	};
 
 	this.markerStyles = {
@@ -125,52 +144,55 @@ Chart.prototype.init = function() {
 	this.drawYAxis();
 };
 
-Chart.prototype.drawMarker = function(valueType, x, y) {
+Chart.prototype.drawMarker = function(valueType, x, y, value) {
 	var markToDraw = this.markers[valueType]['markerType']; // get the mark to draw based on the valueType. e.g., corrects => filled circle
 	// draws corrects marker
 	if (markToDraw === 'filled-circle') {
-		this.drawCircle(x, y, true);
+		this.drawCircle(x, y, true, value);
 	}
 	// draws floor marker
 	if (markToDraw === 'line') {
-		this.drawLine(x, y);
+		this.drawLine(x, y, value);
 	}
 	// draws errors marker
 	if (markToDraw === 'cross') {
-		this.drawCross(x, y);
+		this.drawCross(x, y, value);
 	}
 	// draws trials marker
 	if (markToDraw === 'empty-circle') {
-		this.drawCircle(x, y, false);
+		this.drawCircle(x, y, false, value);
 	}
 }
 
-Chart.prototype.drawCircle = function (x, y, isFilled) {
+Chart.prototype.drawCircle = function (x, y, isFilled, value) {
 	// create new circle with new position
 	var newCircle = this.paper.circle(x, y, this.markerRadius);
 	// draws correct marker
 	if (isFilled === true) {
 		var correctMarkerStyles = this.markerStyles[this.markers['corrects']['markerType']];
 		newCircle.attr(correctMarkerStyles);
-		this.markers['corrects']['value'] = newCircle;
+		this.markers['corrects']['marker'] = newCircle;
+		this.markers['corrects']['value'] = value;
 	}
 	// draws trial marker
 	else {
 		var trialMarkerStyles = this.markerStyles[this.markers['trials']['markerType']];
 		newCircle.attr(trialMarkerStyles);
-		this.markers['trials']['value'] = newCircle;
+		this.markers['trials']['marker'] = newCircle;
+		this.markers['trials']['value'] = value;
 	}
 }
 
-Chart.prototype.drawLine = function (x, y) {
+Chart.prototype.drawLine = function (x, y, value) {
 	var linePath = 'M '+(x-this.markerRadius)+' '+y+' l '+(2*this.markerRadius)+' 0';
 	var newLine = this.paper.path(linePath);
 	var floorMarkerStyles = this.markerStyles[this.markers['floors']['markerType']];
 	newLine.attr(floorMarkerStyles);
-	this.markers['floors']['value'] = newLine;
+	this.markers['floors']['marker'] = newLine;
+	this.markers['floors']['value'] = value;
 }
 
-Chart.prototype.drawCross = function (x, y) {
+Chart.prototype.drawCross = function (x, y, value) {
 	var crossPathOne = 'M '+(x-this.markerRadius)+' '+(y-this.markerRadius)+' l '+(2*this.markerRadius)+' '+(2*this.markerRadius);
 	var crossPathTwo = 'M '+(x-this.markerRadius)+' '+(y+this.markerRadius)+' l '+(2*this.markerRadius)+' '+(-2*this.markerRadius);
 	var crossLineOne = this.paper.path(crossPathOne);
@@ -181,30 +203,48 @@ Chart.prototype.drawCross = function (x, y) {
 	var errorsSet = this.paper.set();
 	errorsSet.push(crossLineOne);
 	errorsSet.push(crossLineTwo);
-	this.markers['errors']['value'] = errorsSet;
+	this.markers['errors']['marker'] = errorsSet;
+	this.markers['errors']['value'] = value;
 }
 
-Chart.prototype.editMarker = function(markerType, newValue) {
+Chart.prototype.drawPhaseline = function (x) {
+	var r = this.phaselineRadius;
+	var y = this.phaselineStartY;
+	var l = this.phaselineTopLength;
+	var z = this.phaselineBottomLength;
+	var linePath = 'M '+(x+r)+' '+y+' C '+(x+r)+' '+y+' '+(x+(r-35))+' '+(y)+' '+(x)+' '+(y+r-20)+' L '+(x)+' '+(y+r+l)+' L '+(x+(r-15))+' '+(y+r+l+z);
+	var newPhaseline = this.paper.path(linePath);
+	newPhaseline.attr({
+		'stroke-width': 1.5,
+		'stroke': '#404040'
+	});
+	this.phaseline['value'] = newPhaseline;
+}
+
+Chart.prototype.removePhaseline = function () {
+	this.phaseline['value'].remove();
+	this.phaseline['value'] = null;
+}
+
+Chart.prototype.editMarker = function(markerType, newValue, decadeNumber) {
 	var decadeNumber;
 	var markerY; // y position of the marker
 	var markerX = this.dayToXPosition(this.activeDay); // x position of the marker
 	var moveDistance; 
 
-	// trials has a base decadeNumber of 0 while the other markers have a base decadeNumber of 3
-	if (markerType === 'trials') { decadeNumber = 0; }
-	else { decadeNumber = 3; }
-
 	// the errors marker is a set of two raphael lines and must do transformation on each line individually
 	if (markerType === 'errors') {
 		markerY = this.calculateMarkerY(decadeNumber, newValue, markerType);
-		moveDistance = -(this.getElementYCoord(this.markers[markerType]['value'][0], markerType) - markerY);
-		this.markers[markerType]['value'][0].transform("...t0," + moveDistance);
-		this.markers[markerType]['value'][1].transform("...t0," + moveDistance);
+		moveDistance = -(this.getElementYCoord(this.markers[markerType]['marker'][0], markerType) - markerY);
+		this.markers[markerType]['marker'][0].transform("...t0," + moveDistance);
+		this.markers[markerType]['marker'][1].transform("...t0," + moveDistance);
+		this.markers[markerType]['value'] = newValue;
 	}
 	else {
 		markerY = this.calculateMarkerY(decadeNumber, newValue, markerType);
-		moveDistance = -(this.getElementYCoord(this.markers[markerType]['value'], markerType) - markerY);
-		this.markers[markerType]['value'].transform("...t0," + moveDistance);
+		moveDistance = -(this.getElementYCoord(this.markers[markerType]['marker'], markerType) - markerY);
+		this.markers[markerType]['marker'].transform("...t0," + moveDistance);
+		this.markers[markerType]['value'] = newValue;
 	}
 }
 
@@ -235,36 +275,58 @@ Chart.prototype.adjustmentsInit = function() {
 		var label = $(this).attr('id'); // get the id of the div that was clicked
 
 		if (label === "add-correct") {
-			if (chart.markers['corrects']['value'] !== null) {
-				chart.editMarker('corrects', numberPlusOne);
+			if (chart.markers['corrects']['marker'] !== null) {
+				chart.editMarker('corrects', numberPlusOne, 3);
 				$(this).prev().html(numberPlusOne);
 			}
 		}
 
 		if (label === "add-floor") {
-			if (chart.markers['floors']['value'] !== null) {
-				chart.floorValue += 1;
-				chart.editMarker('floors', chart.floorValue);
+			if (chart.markers['floors']['marker'] !== null) {
+				var increment;
+				var decadeNumber;
+				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
+					increment = .001; 
+					decadeNumber = 0;
+					roundingFactor = 1000;
+				}
+				if (chart.floorValue >= 0.01 && chart.floorValue < 0.1) {
+					increment = .01;
+					decadeNumber = 1;
+					roundingFactor = 100;
+				}
+				if (chart.floorValue >= .1 && chart.floorValue < 1) {
+					increment = .1;
+					decadeNumber = 2;
+					roundingFactor = 10;
+				}
+				if (chart.floorValue >= 1 && chart.floorValue < 10) {
+					increment = 1;
+					decadeNumber = 3;
+					roundingFactor = 1;
+				}
+				chart.floorValue = Math.round(chart.floorValue*roundingFactor)/roundingFactor + increment;
+				chart.editMarker('floors', chart.floorValue * roundingFactor, decadeNumber);
 				if (chart.floorValue > 1) {
-					chart.convertedFloorValue = 60/chart.floorValue;
+					chart.convertedFloorValue = Math.round(60/chart.floorValue*10)/10;
 				}
 				else {
-					chart.convertedFloorValue = 1/chart.floorValue;
+					chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
 				}
 				$(this).prev().html(chart.convertedFloorValue);
 			}
 		}
 
 		if (label === "add-error") {
-			if (chart.markers['errors']['value'] !== null) {
-				chart.editMarker('errors', numberPlusOne);
+			if (chart.markers['errors']['marker'] !== null) {
+				chart.editMarker('errors', numberPlusOne, 3);
 				$(this).prev().html(numberPlusOne);
 			}
 		}
 
 		if (label === "add-trial") {
-			if (chart.markers['trials']['value'] !== null) {
-				chart.editMarker('trials', numberPlusOne);
+			if (chart.markers['trials']['marker'] !== null) {
+				chart.editMarker('trials', numberPlusOne, 0);
 				$(this).prev().html(numberPlusOne);
 			}
 		}
@@ -276,41 +338,177 @@ Chart.prototype.adjustmentsInit = function() {
 		var label = $(this).attr('id');
 
 		if (label === "sub-correct") {
-			if (chart.markers['corrects']['value'] !== null) {
-				chart.editMarker('corrects', numberMinusOne);
+			if (chart.markers['corrects']['marker'] !== null && chart.markers['corrects']['value'] > 1) {
+				chart.editMarker('corrects', numberMinusOne, 3);
 				$(this).next().html(numberMinusOne);
 			}
 		}
 
 		if (label === "sub-floor") {
 			// only do something if a floor is in the set, floor is in position index 0 in aray
-			if (chart.markers['floors']['value'] !== null) {
-				chart.floorValue -= 1;
-				chart.editMarker('floors', chart.floorValue);
+			if (chart.markers['floors']['marker'] !== null) {
+				var decadeNumber;
+				var decrement;
+				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
+					decrement = .001; 
+					decadeNumber = 0;
+					roundingFactor = 1000;
+				}
+				if (chart.floorValue >= 0.01 && chart.floorValue < 0.1) {
+					decrement = .01;
+					decadeNumber = 1;
+					roundingFactor = 100;
+				}
+				if (chart.floorValue >= .1 && chart.floorValue < 1) {
+					decrement = .1;
+					decadeNumber = 2;
+					roundingFactor = 10;
+				}
+				if (chart.floorValue >= 1 && chart.floorValue < 10) {
+					decrement = 1;
+					decadeNumber = 3;
+					roundingFactor = 1;
+				}
+				chart.floorValue -=  Math.round(chart.floorValue*roundingFactor)/roundingFactor - decrement;
+				chart.editMarker('floors', chart.floorValue * roundingFactor, decadeNumber);
 				if (chart.floorValue > 1) {
-					chart.convertedFloorValue = 60/chart.floorValue;
+					chart.convertedFloorValue = Math.round(60/chart.floorValue*10)/10;
 				}
 				else {
-					chart.convertedFloorValue = 1/chart.floorValue;
+					chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
 				}
 				$(this).next().html(chart.convertedFloorValue);
 			}
 		}
+/*
+		if (chart.markers['floors']['marker'] !== null) {
+				var increment;
+				var decadeNumber;
+				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
+					increment = .001; 
+					decadeNumber = 0;
+					roundingFactor = 1000;
+				}
+				if (chart.floorValue >= 0.01 && chart.floorValue < 0.1) {
+					increment = .01;
+					decadeNumber = 1;
+					roundingFactor = 100;
+				}
+				if (chart.floorValue >= .1 && chart.floorValue < 1) {
+					increment = .1;
+					decadeNumber = 2;
+					roundingFactor = 10;
+				}
+				if (chart.floorValue >= 1 && chart.floorValue < 10) {
+					increment = 1;
+					decadeNumber = 3;
+					roundingFactor = 1;
+				}
+				chart.floorValue = Math.round(chart.floorValue*roundingFactor)/roundingFactor + increment;
+				chart.editMarker('floors', chart.floorValue * roundingFactor, decadeNumber);
+				if (chart.floorValue > 1) {
+					chart.convertedFloorValue = Math.round(60/chart.floorValue*10)/10;
+				}
+				else {
+					chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
+				}
+				$(this).prev().html(chart.convertedFloorValue);
+			}*/
 
 		if (label === "sub-error") {
-			if (chart.markers['errors']['value'] !== null) {
-				chart.editMarker('errors', numberMinusOne);
+			if (chart.markers['errors']['marker'] !== null && chart.markers['errors']['value'] > 1) {
+				chart.editMarker('errors', numberMinusOne, 3);
 				$(this).next().html(numberMinusOne);
 			}
 		}
 
 		if (label === "sub-trial") {
-			if (chart.markers['trials']['value'] !== null) {
-				chart.editMarker('trials', numberMinusOne);
+			if (chart.markers['trials']['marker'] !== null && chart.markers['trials']['value'] > 1) {
+				chart.editMarker('trials', numberMinusOne, 0);
 				$(this).next().html(numberMinusOne);
 			}
 		}
 	});	
+
+	$('#phaseline').on('click', function(e){
+		chart.drawPhaseline(chart.dayToXPosition(chart.activeDay));
+		$('#add-to-phaseline').css('display', 'inline-block');
+		$('#phaseline').css('display', 'none');
+		$('#remove-phaseline').css('display','inline-block');
+	});
+
+	$('#remove-phaseline').on('click', function(e) {
+		chart.removePhaseline();
+		$('#add-to-phaseline').css('display', 'none');
+		$('#remove-phaseline').css('display', 'none');
+		$('#phaseline').css('display', 'inline-block');
+	});
+
+	$('#add-to-phaseline').on('click', function(e){
+		chart.phaseline['note']=$('.note-input').val();
+		$('.modal').modal('hide');
+		$('.note-input').val('');
+		$('#phaseline-label').attr('data-content', chart.phaseline['note']);
+		$('#phaseline-label').data('popover').setContent();
+	});
+
+	$('#add-to-floor').on('click', function(e){
+		chart.markers['floors']['note']=$('.note-input').val();
+		$('.modal').modal('hide');
+		$('.note-input').val('');
+		$('#floor-label').attr('data-content', chart.markers['floors']['note']);
+		$('#floor-label').data('popover').setContent();
+	});
+
+	$('#add-to-correct').on('click', function(e){
+		chart.markers['corrects']['note']=$('.note-input').val();
+		$('.modal').modal('hide');
+		$('.note-input').val('');
+		$('#correct-label').attr('data-content', chart.markers['corrects']['note']);
+		$('#correct-label').data('popover').setContent();
+	});
+
+	$('#add-to-error').on('click', function(e){
+		chart.markers['errors']['note']=$('.note-input').val();
+		$('.modal').modal('hide');
+		$('.note-input').val('');
+		$('#error-label').attr('data-content', chart.markers['errors']['note']);
+		$('#error-label').data('popover').setContent();
+	});
+
+	$('#add-to-trial').on('click', function(e){
+		chart.markers['trials']['note']=$('.note-input').val();
+		$('.modal').modal('hide');
+		$('.note-input').val('');
+		$('#trial-label').attr('data-content', chart.markers['trials']['note']);
+		$('#trial-label').data('popover').setContent();
+	});
+
+	$('#error-label').popover({
+		placement:'top',
+        title: 'Note'
+	});
+
+	$('#trial-label').popover({
+		placement:'top',
+        title: 'Note'
+	});
+
+	$('#correct-label').popover({
+		placement:'top',
+        title: 'Note'
+	});
+
+	$('#floor-label').popover({
+		placement:'top',
+        title: 'Note'
+	});
+
+	$('#phaseline-label').popover({
+		placement:'top',
+        title: 'Note'
+	});
+
 }
 
 
@@ -612,7 +810,6 @@ Chart.prototype.createTouchEvents = function(line, day) {
 		if (value >= 10 && value < 100) roundingFactor = .1;
 		if (value >= 100 && value < 1000) roundingFactor = .01;
 		var roundedValue = Math.round(value*roundingFactor) / roundingFactor;
-		
 
 		// converting back from value to y-coordinate
 		var decadeNumber = chart.findDecade(y);
@@ -626,37 +823,47 @@ Chart.prototype.createTouchEvents = function(line, day) {
 
 		// draw floor, floor must snap to grid
 		if (counter === 0) {
-			chart.drawMarker('floors', markerX, snapMarkerY);
-			chart.floorValue = Math.round(value); // value of floor before converted to time
+			var measureOfTime;
+			chart.floorY = y;
+			chart.floorValue = roundedValue; // value of floor before converted to time
 			if (chart.floorValue > 1) {
+				chart.floorValue = Math.round(roundedValue);
 				chart.convertedFloorValue = 60/chart.floorValue;
+				measureOfTime = 's';
 			}
 			else {
-				chart.convertedFloorValue = 1/chart.floorValue;
+				chart.floorValue = Math.round(roundedValue*100)/100;
+				chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
+				measureOfTime = 'm';
 			}
-			$("#floors").html(chart.floorValue);
+			chart.drawMarker('floors', markerX, snapMarkerY, chart.floorValue);
+			$("#floors").html(chart.convertedFloorValue);
 			counter+=1;
+			$("#add-to-floor").css('display','inline-block');
 		}
 
 		// draw trials, trials must snap to grid
 		else if (counter === 3) {
-			chart.drawMarker('trials', markerX, snapMarkerY);
+			chart.drawMarker('trials', markerX, snapMarkerY, value * roundingFactor);
 			$("#trials").html(Math.round(value * roundingFactor));
 			counter+=1;
+			$("#add-to-trial").css('display','inline-block');
 		}
 
 		// draw corrects
-		else if (counter === 1) {
-			chart.drawMarker('corrects', markerX, markerY);
+		else if (counter === 1 && y > chart.floorY) {
+			chart.drawMarker('corrects', markerX, markerY, value);
 			$("#corrects").html(Math.round(value));
 			counter+=1;
+			$("#add-to-correct").css('display','inline-block');
 		}
 
 		// draw mistakes
-		else if (counter === 2) {
-			chart.drawMarker('errors', markerX, markerY);
+		else if (counter === 2 && y > chart.floorY) {
+			chart.drawMarker('errors', markerX, markerY, value);
 			$("#errors").html(Math.round(value));
 			counter+=1;
+			$("#add-to-error").css('display','inline-block');
 		}
 
 		if (counter > 0) {

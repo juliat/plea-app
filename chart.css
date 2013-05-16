@@ -5,16 +5,30 @@ body {
 }
 
 .adjustment-section {
-	width: 150px;
+	width: 130px;
+	padding-left: 10px;
 	float: left;
 	display: inline-block;
-	height: 60px;
+	height: 65px;
 	position: relative;
+	border-left: 1px solid #CCC;
 }
 
 #draw {
 	margin: 0;
 	padding: 0;
+}
+
+#remove-phaseline {
+	display: none;
+}
+
+.pad {
+	margin-top: 15px;
+}
+
+#add-to-floor, #add-to-error, #add-to-trial, #add-to-correct, #add-to-phaseline {
+	display: none;
 }
 
 #define-markers {
@@ -32,7 +46,7 @@ body {
   	display: none;
   	z-index: 10;
   	color: black;
-  	height: 60px;
+  	height: 65px;
   	background: rgba(242,242,242,.7);
   	position: absolute;
   	bottom: 0px;
@@ -41,7 +55,7 @@ body {
 .adjustments-div {
 	position: absolute;
 	top: 30px;
-	left: 0px;
+	left: 10px;
 }
 
 .input {
@@ -72,7 +86,6 @@ body {
 h4 {
 	display: inline-block;
 	text-align: left;
-	padding-left: 20px;
 	float: left;
 }
 

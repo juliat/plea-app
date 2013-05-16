@@ -6,13 +6,6 @@
 		<link rel="stylesheet" type="text/css" href="chart.css">
 		<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
 
-		<script type="text/javascript" src="raphael-min.js"></script>
-		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-		<script type="text/javascript" src="chart.js"></script>
-		<script type="text/javascript" src="ratefinder-chart.js"></script>
-		<script type="text/javascript" src="hammer.min.js"></script>
-		<script type="text/javascript" src="js/bootstrap.min.js"></script>
-
 		<!--Stops double tap from zooming and lets multitouch gestures work -->
 		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
 	</head>
@@ -23,6 +16,7 @@
 		</div>
 		<div id="draw">
 		</div>
+
 		<div id="adjustments">
 			<div class="adjustment-section">
 				<h4>John Smith</h4>
@@ -31,56 +25,96 @@
 			<div class="colors">colors</div>-->
 			<div class="adjustment-section">
 				<div class="label-div">
-					<li class="label">Floor</li>
+					<li id="floor-label" class="label">Floor</li>
 				</div>
 				<div class="adjustments-div">
 					<ul>
 						<li>
-			        		<button id="sub-floor" class="btn btn-inverse subtract"><i class="icon-arrow-down icon-white"></i></button>
+			        		<button id="sub-floor" class="btn subtract"><i class="icon-arrow-down"></i></button>
 			        		<p id="floors" class="input"></p>
-			        		<button id="add-floor" class="btn btn-inverse add"><i class="icon-arrow-up icon-white"></i></button></li>
+			        		<button id="add-floor" class="btn add"><i class="icon-arrow-up"></i></button></li>
 		        	</ul>
 				</div>
 			</div>
 			<div class="adjustment-section">
 				<div class="label-div">
-					<li class="label">Corrects</li>
+					<li id="correct-label" class="label">Corrects</li>
 				</div>
 				<div class="adjustments-div">
 					<ul>
 						<li>
-			        		<button id="sub-correct" class="btn btn-inverse subtract"><i class="icon-arrow-down icon-white"></i></button>
+			        		<button id="sub-correct" class="btn subtract"><i class="icon-arrow-down"></i></button>
 			        		<p id="corrects" class="input"></p>
-			        		<button id="add-correct" class="btn btn-inverse add"><i class="icon-arrow-up icon-white"></i></button></li>
+			        		<button id="add-correct" class="btn add"><i class="icon-arrow-up"></i></button></li>
 		        	</ul>
 				</div>
 			</div>
 			<div class="adjustment-section">
 				<div class="label-div">
-					<li class="label">Errors</li>
+					<li id="error-label" class="label" rel="popover">Errors</li>
 				</div>
 				<div class="adjustments-div">
 					<ul>
 						<li>
-			        		<button id="sub-error" class="btn btn-inverse subtract"><i class="icon-arrow-down icon-white"></i></button>
+			        		<button id="sub-error" class="btn subtract"><i class="icon-arrow-down"></i></button>
 			        		<p id="errors" class="input"></p>
-			        		<button id="add-error" class="btn btn-inverse add"><i class="icon-arrow-up icon-white"></i></button></li>
+			        		<button id="add-error" class="btn add"><i class="icon-arrow-up"></i></button></li>
 		        	</ul>
 				</div>
 			</div>
 			<div class="adjustment-section">
 				<div class="label-div">
-					<li class="label">Trials</li>
+					<li id="trial-label" class="label">Trials</li>
 				</div>
 				<div class="adjustments-div">
 					<ul>
 						<li>
-			        		<button id="sub-trial" class="btn btn-inverse subtract"><i class="icon-arrow-down icon-white"></i></button>
+			        		<button id="sub-trial" class="btn subtract"><i class="icon-arrow-down"></i></button>
 			        		<p id="trials" class="input"></p>
-			        		<button id="add-trial" class="btn btn-inverse add"><i class="icon-arrow-up icon-white"></i></button></li>
+			        		<button id="add-trial" class="btn add"><i class="icon-arrow-up"></i></button></li>
 		        	</ul>
 				</div>
+			</div>
+
+			<div class="adjustment-section">
+				<div class="label-div">
+					<li id="phaseline-label" class="label">Phaseline</li>
+				</div>
+				<div class="adjustments-div">
+					<button id="phaseline" class="btn">Add</button>
+					<button id="remove-phaseline" class="btn">Remove</button>
+				</div>
+			</div>
+			<div class="adjustment-section">
+				<button id="note" class="btn pad" data-toggle="modal" data-target="#addnote">Add Note</button>
 			</div>
     	</div>
+
+    	<div class="modal hide fade" id="addnote" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    		<div class="modal-header">
+    			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+    			<h3>Add Note:</h3>
+    		</div>
+    		<div class="modal-body">
+	    		<input class="note-input"/>
+	    		<br/>
+	    		<br/>
+	    		<p>Add this note to:</p>
+	    	</div>
+	    	<div class="modal-footer">
+	    		<button id="add-to-floor" class="btn note">Floor</button>
+	    		<button id="add-to-correct" class="btn note">Corrects</button>
+	    		<button id="add-to-error" class="btn note">Errors</button>
+	    		<button id="add-to-trial" class="btn note">Trials</button>
+	   			<button id="add-to-phaseline" class="btn note">Phaseline</button>
+	    	</div>
+    	</div>
+
+    	<script type="text/javascript" src="raphael-min.js"></script>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript" src="chart.js"></script>
+		<script type="text/javascript" src="ratefinder-chart.js"></script>
+		<script type="text/javascript" src="hammer.min.js"></script>
+		<script type="text/javascript" src="js/bootstrap.min.js"></script>
 	</body>
 </html>
