@@ -29,41 +29,28 @@ function Chart() {
 	this.phaselineBottomLength = 80;
 	this.phaselineStartY = 60;
 
-	this.markers = {
+	this.metric = {
 		'corrects' : {
-						'markerType' : 'filled-circle',
-						'order' : 1,
-						'value' : null, //numeric value of marker
-						'marker' : null, //raphael object that is drawn... make transformations to this
-						'note' : null
+						'marker' : 'filled-circle',
+						'metric' : null
 					 },
-		'floors' :   {
-						'markerType' : 'line',
-						'order' : 0,
-						'value' : null,
-						'marker' : null,
-						'note' : null,
-						'measure' : null //either s, m, h (seconds, minutes, hours)
+		'floor' :   {
+						'marker' : 'line',
+						'metric' : null
 				     },
 		'errors' :   {
-						'markerType' : 'cross',
-						'order': 2,
-						'value' : null,
-						'marker' : null,
-						'note' : null
+						'marker' : 'cross',
+						'metric' : null
 				     },
 		'trials' :   {
-						'markerType' : 'empty-circle',
-						'order' : 3,
-						'value' : null,
-						'marker' : null,
-						'note' : null
+						'marker' : 'empty-circle',
+						'metric' : null
 				     },
 	};
 
 	this.phaseline = {
 		'value' : null,
-		'note' : null,
+		'note' : null
 	};
 
 	this.markerStyles = {
@@ -144,67 +131,8 @@ Chart.prototype.init = function() {
 	this.drawYAxis();
 };
 
-Chart.prototype.drawMarker = function(valueType, x, y, value) {
-	var markToDraw = this.markers[valueType]['markerType']; // get the mark to draw based on the valueType. e.g., corrects => filled circle
-	// draws corrects marker
-	if (markToDraw === 'filled-circle') {
-		this.drawCircle(x, y, true, value);
-	}
-	// draws floor marker
-	if (markToDraw === 'line') {
-		this.drawLine(x, y, value);
-	}
-	// draws errors marker
-	if (markToDraw === 'cross') {
-		this.drawCross(x, y, value);
-	}
-	// draws trials marker
-	if (markToDraw === 'empty-circle') {
-		this.drawCircle(x, y, false, value);
-	}
-}
-
-Chart.prototype.drawCircle = function (x, y, isFilled, value) {
-	// create new circle with new position
-	var newCircle = this.paper.circle(x, y, this.markerRadius);
-	// draws correct marker
-	if (isFilled === true) {
-		var correctMarkerStyles = this.markerStyles[this.markers['corrects']['markerType']];
-		newCircle.attr(correctMarkerStyles);
-		this.markers['corrects']['marker'] = newCircle;
-		this.markers['corrects']['value'] = value;
-	}
-	// draws trial marker
-	else {
-		var trialMarkerStyles = this.markerStyles[this.markers['trials']['markerType']];
-		newCircle.attr(trialMarkerStyles);
-		this.markers['trials']['marker'] = newCircle;
-		this.markers['trials']['value'] = value;
-	}
-}
-
-Chart.prototype.drawLine = function (x, y, value) {
-	var linePath = 'M '+(x-this.markerRadius)+' '+y+' l '+(2*this.markerRadius)+' 0';
-	var newLine = this.paper.path(linePath);
-	var floorMarkerStyles = this.markerStyles[this.markers['floors']['markerType']];
-	newLine.attr(floorMarkerStyles);
-	this.markers['floors']['marker'] = newLine;
-	this.markers['floors']['value'] = value;
-}
-
-Chart.prototype.drawCross = function (x, y, value) {
-	var crossPathOne = 'M '+(x-this.markerRadius)+' '+(y-this.markerRadius)+' l '+(2*this.markerRadius)+' '+(2*this.markerRadius);
-	var crossPathTwo = 'M '+(x-this.markerRadius)+' '+(y+this.markerRadius)+' l '+(2*this.markerRadius)+' '+(-2*this.markerRadius);
-	var crossLineOne = this.paper.path(crossPathOne);
-	var crossLineTwo = this.paper.path(crossPathTwo);
-	var errorMarkerStyles = this.markerStyles[this.markers['errors']['markerType']];
-	crossLineOne.attr(errorMarkerStyles);
-	crossLineTwo.attr(errorMarkerStyles);
-	var errorsSet = this.paper.set();
-	errorsSet.push(crossLineOne);
-	errorsSet.push(crossLineTwo);
-	this.markers['errors']['marker'] = errorsSet;
-	this.markers['errors']['value'] = value;
+Chart.prototype.getMarkerForMetric = function(type) {
+	return this.metric[type]['marker'];
 }
 
 Chart.prototype.drawPhaseline = function (x) {
@@ -226,43 +154,6 @@ Chart.prototype.removePhaseline = function () {
 	this.phaseline['value'] = null;
 }
 
-Chart.prototype.editMarker = function(markerType, newValue, decadeNumber) {
-	var decadeNumber;
-	var markerY; // y position of the marker
-	var markerX = this.dayToXPosition(this.activeDay); // x position of the marker
-	var moveDistance; 
-
-	// the errors marker is a set of two raphael lines and must do transformation on each line individually
-	if (markerType === 'errors') {
-		markerY = this.calculateMarkerY(decadeNumber, newValue, markerType);
-		moveDistance = -(this.getElementYCoord(this.markers[markerType]['marker'][0], markerType) - markerY);
-		this.markers[markerType]['marker'][0].transform("...t0," + moveDistance);
-		this.markers[markerType]['marker'][1].transform("...t0," + moveDistance);
-		this.markers[markerType]['value'] = newValue;
-	}
-	else {
-		markerY = this.calculateMarkerY(decadeNumber, newValue, markerType);
-		moveDistance = -(this.getElementYCoord(this.markers[markerType]['marker'], markerType) - markerY);
-		this.markers[markerType]['marker'].transform("...t0," + moveDistance);
-		this.markers[markerType]['value'] = newValue;
-	}
-}
-
-Chart.prototype.getElementXCoord = function(element, index) {
-	var x = this.set[index].getBBox().x + this.markerRadius;
-	return x;
-}
-
-Chart.prototype.getElementYCoord = function(element, markerType) {
-	if (markerType === "floor") {
-		var y = element.getBBox().y;
-	}
-	else {
-		var y = element.getBBox().y + this.markerRadius;
-	}
-	return y;
-}
-
 Chart.prototype.adjustmentsInit = function() {
 	var chart = this;
 
@@ -275,14 +166,15 @@ Chart.prototype.adjustmentsInit = function() {
 		var label = $(this).attr('id'); // get the id of the div that was clicked
 
 		if (label === "add-correct") {
-			if (chart.markers['corrects']['marker'] !== null) {
-				chart.editMarker('corrects', numberPlusOne, 3);
-				$(this).prev().html(numberPlusOne);
+			if (chart.metric['corrects']['metric'] !== null) {
+				chart.metric['corrects']['metric'].changeMarkerValue(1);
+				$(this).prev().html(chart.metric['corrects']['metric'].value);
+				chart.metric['corrects']['metric'].changeMarkerPosition(1);
 			}
 		}
 
 		if (label === "add-floor") {
-			if (chart.markers['floors']['marker'] !== null) {
+			if (chart.markers['floor']['marker'] !== null) {
 				var increment;
 				var decadeNumber;
 				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
@@ -346,7 +238,7 @@ Chart.prototype.adjustmentsInit = function() {
 
 		if (label === "sub-floor") {
 			// only do something if a floor is in the set, floor is in position index 0 in aray
-			if (chart.markers['floors']['marker'] !== null) {
+			if (chart.markers['floor']['marker'] !== null) {
 				var decadeNumber;
 				var decrement;
 				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
@@ -370,7 +262,7 @@ Chart.prototype.adjustmentsInit = function() {
 					roundingFactor = 1;
 				}
 				chart.floorValue -=  Math.round(chart.floorValue*roundingFactor)/roundingFactor - decrement;
-				chart.editMarker('floors', chart.floorValue * roundingFactor, decadeNumber);
+				chart.editMarker('floor', chart.floorValue * roundingFactor, decadeNumber);
 				if (chart.floorValue > 1) {
 					chart.convertedFloorValue = Math.round(60/chart.floorValue*10)/10;
 				}
@@ -380,40 +272,6 @@ Chart.prototype.adjustmentsInit = function() {
 				$(this).next().html(chart.convertedFloorValue);
 			}
 		}
-/*
-		if (chart.markers['floors']['marker'] !== null) {
-				var increment;
-				var decadeNumber;
-				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
-					increment = .001; 
-					decadeNumber = 0;
-					roundingFactor = 1000;
-				}
-				if (chart.floorValue >= 0.01 && chart.floorValue < 0.1) {
-					increment = .01;
-					decadeNumber = 1;
-					roundingFactor = 100;
-				}
-				if (chart.floorValue >= .1 && chart.floorValue < 1) {
-					increment = .1;
-					decadeNumber = 2;
-					roundingFactor = 10;
-				}
-				if (chart.floorValue >= 1 && chart.floorValue < 10) {
-					increment = 1;
-					decadeNumber = 3;
-					roundingFactor = 1;
-				}
-				chart.floorValue = Math.round(chart.floorValue*roundingFactor)/roundingFactor + increment;
-				chart.editMarker('floors', chart.floorValue * roundingFactor, decadeNumber);
-				if (chart.floorValue > 1) {
-					chart.convertedFloorValue = Math.round(60/chart.floorValue*10)/10;
-				}
-				else {
-					chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
-				}
-				$(this).prev().html(chart.convertedFloorValue);
-			}*/
 
 		if (label === "sub-error") {
 			if (chart.markers['errors']['marker'] !== null && chart.markers['errors']['value'] > 1) {
@@ -453,10 +311,10 @@ Chart.prototype.adjustmentsInit = function() {
 	});
 
 	$('#add-to-floor').on('click', function(e){
-		chart.markers['floors']['note']=$('.note-input').val();
+		chart.markers['floor']['note']=$('.note-input').val();
 		$('.modal').modal('hide');
 		$('.note-input').val('');
-		$('#floor-label').attr('data-content', chart.markers['floors']['note']);
+		$('#floor-label').attr('data-content', chart.markers['floor']['note']);
 		$('#floor-label').data('popover').setContent();
 	});
 
@@ -668,18 +526,6 @@ Chart.prototype.getDecadeBaseValue = function(decadeNumber) {
 	return value;
 }
 
-Chart.prototype.calculateMarkerY = function(decadeNumber, value, markerType) {
-	var decadeBasePosition = this.getDecadeBasePosition(decadeNumber);
-	var decadeBaseValue = this.getDecadeBaseValue(decadeNumber);
-	var markerY = this.valueToYPosition(decadeBasePosition, value * decadeBaseValue, decadeBaseValue);
-	if (markerType === "floors") {
-		return markerY + this.markerRadius;
-	}
-	else {
-		return markerY;
-	}
-}
-
 Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaY = 0; // zero because we don't want the line to be slanted
@@ -795,78 +641,41 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 // function that draws points on the 'today' line when there is a touch input
 Chart.prototype.createTouchEvents = function(line, day) {
 	var chart = this;
-	var counter = 0;
+	var index = 0;
 	chart.hammertime.on("tap", function(e) {
 		// draw point on active day line
 		var chartBottomY = chart.chartHeight + chart.topMargin;
 		var y = chartBottomY - event.y;
-		var value = chart.pointToValue(y);
-		// create a rounding factor to snap touch event to nearest horizontal line coordinate
-		var roundingFactor;
-		if (value >= 0 && value < 0.01) roundingFactor = 1000; 
-		if (value >= 0.01 && value < 0.1) roundingFactor = 100;
-		if (value >= .1 && value < 1) roundingFactor = 10;
-		if (value >= 1 && value < 10) roundingFactor = 1;
-		if (value >= 10 && value < 100) roundingFactor = .1;
-		if (value >= 100 && value < 1000) roundingFactor = .01;
-		var roundedValue = Math.round(value*roundingFactor) / roundingFactor;
-
-		// converting back from value to y-coordinate
-		var decadeNumber = chart.findDecade(y);
-		var decadeBasePosition = chartBottomY - (decadeNumber * chart.decadeHeight);
-		var decadeBaseValue = chart.getDecadeBaseValue(decadeNumber);
-		var snapMarkerY = chart.valueToYPosition(decadeBasePosition, roundedValue, decadeBaseValue);
-		var markerY = chart.valueToYPosition(decadeBasePosition, value, decadeBaseValue);
-
-		var markerX = chart.dayToXPosition(day);
-		var markerRadius = 5;
 
 		// draw floor, floor must snap to grid
-		if (counter === 0) {
-			var measureOfTime;
-			chart.floorY = y;
-			chart.floorValue = roundedValue; // value of floor before converted to time
-			if (chart.floorValue > 1) {
-				chart.floorValue = Math.round(roundedValue);
-				chart.convertedFloorValue = 60/chart.floorValue;
-				measureOfTime = 's';
-			}
-			else {
-				chart.floorValue = Math.round(roundedValue*100)/100;
-				chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
-				measureOfTime = 'm';
-			}
-			chart.drawMarker('floors', markerX, snapMarkerY, chart.floorValue);
-			$("#floors").html(chart.convertedFloorValue);
-			counter+=1;
-			$("#add-to-floor").css('display','inline-block');
+		if (index === 0) {
+			chart.metric['floor']['metric'] = new Metric(chart, 'floor', chart.activeDay, y);
+			$("#floors").html(chart.metric['floor']['metric'].value);
+			index+=1;
 		}
 
 		// draw trials, trials must snap to grid
-		else if (counter === 3) {
-			chart.drawMarker('trials', markerX, snapMarkerY, value * roundingFactor);
-			$("#trials").html(Math.round(value * roundingFactor));
-			counter+=1;
-			$("#add-to-trial").css('display','inline-block');
+		else if (index === 3) {
+			chart.metric['trials']['metric'] = new Metric(chart, 'trials', chart.activeDay, y);
+			$("#trials").html(chart.metric['trials']['metric'].value);
+			index+=1;
 		}
 
 		// draw corrects
-		else if (counter === 1 && y > chart.floorY) {
-			chart.drawMarker('corrects', markerX, markerY, value);
-			$("#corrects").html(Math.round(value));
-			counter+=1;
-			$("#add-to-correct").css('display','inline-block');
+		else if (index === 1) {
+			chart.metric['corrects']['metric'] = new Metric(chart, 'corrects', chart.activeDay, y);
+			$("#corrects").html(chart.metric['corrects']['metric'].value);
+			index+=1;
 		}
 
-		// draw mistakes
-		else if (counter === 2 && y > chart.floorY) {
-			chart.drawMarker('errors', markerX, markerY, value);
-			$("#errors").html(Math.round(value));
-			counter+=1;
-			$("#add-to-error").css('display','inline-block');
+		// draw errors
+		else if (index === 2) {
+			chart.metric['errors']['metric'] = new Metric(chart, 'errors', chart.activeDay, y);
+			$("#errors").html(chart.metric['errors']['metric'].value);
+			index+=1;
 		}
 
-		if (counter > 0) {
+		if (index > 0) {
 			$('#adjustments').css("display", "block");
 		}
 
@@ -905,25 +714,11 @@ Chart.prototype.drawValue = function(day, value) {
 	var circle = paper.circle(cx, cy, radius);
 }
 
-
-// takes a point on the chart and converts it to a semantic numeric value
-Chart.prototype.pointToValue = function(yPosition) {
-	// get the base position (we're talking pixels) by using the value to position funciton on the base position
-	var decadeNumber = this.findDecade(yPosition);
-	var decadeBasePosition = decadeNumber * this.decadeHeight;
-	var percentAwayFromVBase = (yPosition - decadeBasePosition)/this.decadeHeight;
-	var decadeBaseValue = Math.pow(10, decadeNumber + this.minExponent);
-	var value = decadeBaseValue * Math.pow(10, percentAwayFromVBase);
-	return value;
-}
-
 // takes a point and finds what decade you are in based on that point
 Chart.prototype.findDecade = function(point) {
 	var decadeNumber = Math.floor(point/this.decadeHeight);
 	return decadeNumber;
 }
-
-// note: for sooming maybe only draw decades
 
 // just a helper to do log10 of numbers (javascript doesn't let you specify the base) of a log normally
 function log10(value) {
