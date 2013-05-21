@@ -120,6 +120,15 @@ Chart.prototype.setStyles = function() {
 								'font-size' : 14,
 								'text-anchor' : 'middle',
 								'color' : '#A6C5D3'
+							},
+		'activedayline' : 	{
+								'weight' : '1',
+								'color' : '#0000FF'
+							},
+		'activedaylabel' : 	{
+								'font-size' : 8,
+								'text-anchor' : 'middle',
+								'color' : '#0000FF'
 							}
 	};
 }
@@ -408,50 +417,31 @@ Chart.prototype.drawYAxis = function() {
 	var startX = this.leftMargin;
 	var labelAttr;
 	var lineAttrs;
+	var vertLabelPadding = this.labelPadding + 10;
 
 	for (var i = 0; i <= this.numberOfDays; i++) {
-		lineAttrs = {
-			'weight': '0.4',
-			'color' : '#A6C5D3',
-		};
-
-		labelAttr = {
-			'font-size': 15,
-			'color': '#A6C5D3',
-			'text-anchor': 'middle'
-		}
-
 		// draw the blue line representing today's line
 		if (i === this.activeDay) {
-			lineAttrs.weight = '1';
-			lineAttrs.color = '#0000FF';
-			labelAttr = {
-				'font-size': 8,
-				'color': '#0000FF',
-				'text-anchor': 'middle'
-			}
-			this.drawLabel(startX + i*spacing, lineStartY - this.labelPadding, 'TODAY', labelAttr);
-			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs, true, i);
+			this.drawLabel(startX + i*spacing, lineStartY - this.labelPadding, 'TODAY', this.chartStyles['activedaylabel']);
+			this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, this.chartStyles['activedayline'], true, i);
 		}
 
 		// draw the rest of the vertical lines
 		else {
 			// every 7th and 14th vertical line are bolded
 			if (i%7 === 0) {
-				lineAttrs.weight = '1';
 				// include tickmarks and labels on the 14th line
 				if (i%14 === 0) {
-					var vertLabelPadding = this.labelPadding + 10;
-					this.drawLabel(startX + i*spacing, lineEndY + vertLabelPadding, i, labelAttr);
-					this.drawVerticalLine(startX + i*spacing, lineStartY - this.baseTickLength, lineEndY + this.baseTickLength, lineAttrs);
+					this.drawLabel(startX + i*spacing, lineEndY + vertLabelPadding, i, this.chartStyles['weeklabel']);
+					this.drawVerticalLine(startX + i*spacing, lineStartY - this.baseTickLength, lineEndY + this.baseTickLength, this.chartStyles['weekline']);
 				}
 				else {
-					this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
+					this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, this.chartStyles['weekline']);
 				}
 			}
 			// draw normal vertical lines
 			else {
-				this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, lineAttrs);
+				this.drawVerticalLine(startX + i*spacing, lineStartY, lineEndY, this.chartStyles['intermediateline']);
 			}
 		}
 	}
