@@ -81,7 +81,7 @@ Metric.prototype.getSnappedValue = function() {
 }
 
 Metric.prototype.drawMarker = function() {
-	var y = this.getMarkerYPosition();
+	var y = this.getMarkerYPosition(this.logarithmicValue);
 	
 	if (this.marker === 'filled-circle') return this.drawCircle(y, true);
 	if (this.marker === 'line') return this.drawLine(y);
@@ -89,10 +89,10 @@ Metric.prototype.drawMarker = function() {
 	if (this.marker === 'empty-circle') return this.drawCircle(y, false);
 }
 
-Metric.prototype.getMarkerYPosition = function() {
+Metric.prototype.getMarkerYPosition = function(value) {
 	var decadeBasePosition = this.chart.getDecadeBasePosition(this.decadeNumber);
 	var decadeBaseValue = this.chart.getDecadeBaseValue(this.decadeNumber);	
-	var markerY = this.chart.valueToYPosition(decadeBasePosition, this.logarithmicValue * decadeBaseValue, decadeBaseValue);
+	var markerY = this.chart.valueToYPosition(decadeBasePosition, value * decadeBaseValue, decadeBaseValue);
 	return markerY;
 }
 
@@ -102,14 +102,14 @@ Metric.prototype.drawCircle = function(y, isFilled) {
 
 	// set corrects attributes onto circle
 	if (isFilled === true) {
-		var correctMarkerStyles = this.chart.markerStyles[this.marker];
-		newCircle.attr(correctMarkerStyles);
+		var correctMetricStyles = this.chart.metricStyles[this.marker];
+		newCircle.attr(correctMetricStyles);
 	}
 
 	// set trials attributes onto circle
 	else {
-		var trialMarkerStyles = this.chart.markerStyles[this.marker];
-		newCircle.attr(trialMarkerStyles);
+		var trialMetricStyles = this.chart.metricStyles[this.marker];
+		newCircle.attr(trialMetricStyles);
 	}
 
 	return newCircle;
@@ -120,8 +120,8 @@ Metric.prototype.drawLine = function(y) {
 	var linePath = 'M '+(this.x-this.radius)+' '+y+' L '+(this.x+this.radius)+' '+y;
 	var newLine = this.chart.paper.path(linePath);
 	// set floor attributes onto line
-	var floorMarkerStyles = this.chart.markerStyles[this.marker];
-	newLine.attr(floorMarkerStyles);
+	var floorMetricStyles = this.chart.metricStyles[this.marker];
+	newLine.attr(floorMetricStyles);
 
 	return newLine;
 }
@@ -134,9 +134,9 @@ Metric.prototype.drawCross = function(y) {
 	var crossLineTwo = this.chart.paper.path(crossPathTwo);
 
 	// set error attributes onto cross
-	var errorMarkerStyles = this.chart.markerStyles[this.marker];
-	crossLineOne.attr(errorMarkerStyles);
-	crossLineTwo.attr(errorMarkerStyles);
+	var errorMetricStyles = this.chart.metricStyles[this.marker];
+	crossLineOne.attr(errorMetricStyles);
+	crossLineTwo.attr(errorMetricStyles);
 
 	// create an array (Raphael set) that contains the error marker (two separate lines)
 	var errorSet = this.chart.paper.set();
@@ -148,20 +148,23 @@ Metric.prototype.drawCross = function(y) {
 
 Metric.prototype.changeMarkerValue = function(delta) {
 	if (this.type === 'floor') {
+		this.prevLogarithmicValue = this.logarithmicValue;
 		this.logarithmicValue += delta;
 		this.value = 60/(this.logarithmicValue);
 	}
 	else {
+		this.prevLogarithmicValue = this.logarithmicValue;
+		this.logarithmicValue += delta;
 		this.value += delta;
 	}
 }
 
 Metric.prototype.changeMarkerPosition = function() {
-	this.y = this.paperObject[0].getBBox().y;
-	console.log('y is ' + this.y);
+	this.y = this.getMarkerYPosition(this.prevLogarithmicValue);
+	console.log('previous y: ' + this.y);
 	var newYPos = this.calculateNewYPosition();
-	console.log('new Y pos is ' + newYPos);
 	var moveDistance = -(this.y - newYPos);
+	console.log('new y: ' + newYPos);
 	// the errors marker is an array of two Raphael lines and must do transformation on each line individually
 	if (this.type === 'errors') {
 		this.paperObject[0].transform('...t0,' + moveDistance);
@@ -175,12 +178,20 @@ Metric.prototype.changeMarkerPosition = function() {
 Metric.prototype.calculateNewYPosition = function() {
 	var decadeBasePosition = this.chart.getDecadeBasePosition(this.decadeNumber);
 	var decadeBaseValue = this.chart.getDecadeBaseValue(this.decadeNumber);
-	var markerY = this.chart.valueToYPosition(decadeBasePosition, this.value * decadeBaseValue, decadeBaseValue);
+	var markerY = this.chart.valueToYPosition(decadeBasePosition, this.logarithmicValue * decadeBaseValue, decadeBaseValue);
 	if (this.type === "floors") {
 		return markerY + this.radius;
 	}
 	else {
 		return markerY;
+	}
+}
+
+Metric.prototype.changeValueAndMarker = function(delta) {
+	if (this !== null) {
+		this.changeMarkerValue(delta);
+		$('#'+this.type).html(this.value);
+		this.changeMarkerPosition();
 	}
 }
 

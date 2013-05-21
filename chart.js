@@ -18,21 +18,31 @@ window.onload = function(){
 // construct chart object
 function Chart() {
 	this.numberOfDays = 140;
+	this.activeDay = 18;
 	this.minExponent = -3;
 	this.maxExponent = 3;
 	this.numberOfDecades = Math.abs(this.minExponent) + Math.abs(this.maxExponent);
-	this.drawElement = $('#draw');
-	this.markerRadius = 5;
+	this.init();
+}
 
-	this.phaselineRadius = 40;
-	this.phaselineTopLength = 440;
-	this.phaselineBottomLength = 80;
-	this.phaselineStartY = 60;
 
+// Initialize the chart
+Chart.prototype.init = function() {
+	this.setObjects();
+	this.setStyles();
+	this.setDimensions();
+	this.createChartTouchEvents();
+	this.createPaperDrawingArea();
+	this.createAdjustmentsTouchEvents();
+	this.drawXAxis();
+	this.drawYAxis();
+};
+
+Chart.prototype.setObjects = function() {
 	this.metric = {
 		'corrects' : {
 						'marker' : 'filled-circle',
-						'metric' : null
+						'metric' : null // instance of metric is stored here
 					 },
 		'floor' :   {
 						'marker' : 'line',
@@ -45,59 +55,88 @@ function Chart() {
 		'trials' :   {
 						'marker' : 'empty-circle',
 						'metric' : null
-				     },
+				     }
 	};
 
 	this.phaseline = {
 		'value' : null,
 		'note' : null
 	};
+}
 
-	this.markerStyles = {
+Chart.prototype.setStyles = function() {
+	this.metricStyles = {
 		'filled-circle' : 	{
 								'fill-opacity': 1,
 						   		'fill': '#000'
 						   	},
 		'line' : 			{ 
-								"stroke-width": "1",
-					 			"stroke": "#000000"
+								'stroke-width': '1',
+					 			'stroke': '#000'
 					 		},
 		'cross' : 			{ 
-								"stroke-width": "1",
-				    			"stroke": "#000000"
+								'stroke-width': '1',
+				    			'stroke': "#000"
 				    		},
 		'empty-circle' : 	{
 								'fill-opacity': 0
-							},
+							}
 	};
-	
-	this.init();
-
-	// init adjustment div
-	this.adjustmentsInit();
+	this.chartStyles = {
+		// horizontal lines and labels
+		'decadebaseline' : 	{
+								'weight' : '1.1',
+								'color' : '#A6C5D3'
+							},
+		'decadebaselabel' : {
+								'font-size' : 15,
+								'text-anchor' : 'end',
+								'color' : '#A6C5D3'
+							},
+		'intermediateline' : {
+								'weight' : '0.4',
+								'color' : '#A6C5D3'
+							},
+		'middleline' :   	{
+								'weight' : '0.8',
+								'color' : '#A6C5D3'
+							},
+		'middlelabel' : 	{
+								'font-size' : 10,
+								'text-anchor' : 'end',
+								'color' : '#A6C5D3'
+							},
+		'floorlabel' : 		{
+								'font-size' : 10,
+								'text-anchor' : 'start',
+								'color' : '#A6C5D3'
+							},
+		// vertical lines and labels
+		'weekline' : 		{
+								'weight' : '1',
+								'color' : '#A6C5D3'
+							},
+		'weeklabel' : 		{
+								'font-size' : 14,
+								'text-anchor' : 'middle',
+								'color' : '#A6C5D3'
+							}
+	};
 }
 
-/* Initialize the chart */
-Chart.prototype.init = function() {
+Chart.prototype.setDimensions = function() {
 	// initialize width and height of chart based on window size
 	var width = $(window).width();
 	var height = $(window).height();
 	$("#draw").width(width);
 	$("#draw").height(height);
 
-	// initialize 'draw' div as hammer touch area
-	this.hammertime = $("#draw").hammer();
-
-	// define active day, just put in 18 for now
-	this.activeDay = 18;
-
 	// get dimensions from jquery drawElement to define chart height, width and margins
+	this.drawElement = $('#draw');
 	this.bottomMargin = this.drawElement.height() * 0.1;
 	this.topMargin = this.drawElement.height() * 0.05;
-
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.rightMargin = this.drawElement.width() * 0.05;
-
 	this.chartWidth = this.drawElement.width() - (this.leftMargin + this.rightMargin);
 	this.chartHeight = this.drawElement.height() - (this.bottomMargin + this.topMargin);
 
@@ -108,273 +147,122 @@ Chart.prototype.init = function() {
 	this.baseTickLength = 8;
 	this.intermediateTickLength = 5;
 
-	// calculate height of a decade in pixels by dividing the chart height by
-	// the number of decades
+	// calculate height of a decade in pixels by dividing the chart height by the number of decades
 	this.decadeHeight = this.chartHeight / this.numberOfDecades;
+}
 
+// function that draws points on the 'today' line when there is a touch input
+Chart.prototype.createChartTouchEvents = function() {
+	var chart = this;
+	var index = 0;
+	chart.hammertime = $("#draw").hammer();
+
+	// draw point on active day line
+	chart.hammertime.on("tap", function(e) {
+		var chartBottomY = chart.chartHeight + chart.topMargin;
+		var y = chartBottomY - event.y;
+
+		// draw floor
+		if (index === 0) {
+			chart.metric['floor']['metric'] = new Metric(chart, 'floor', chart.activeDay, y);
+			$("#floor").html(chart.metric['floor']['metric'].value);
+			index+=1;
+		}
+
+		// draw trials
+		else if (index === 3) {
+			chart.metric['trials']['metric'] = new Metric(chart, 'trials', chart.activeDay, y);
+			$("#trials").html(chart.metric['trials']['metric'].value);
+			index+=1;
+		}
+
+		// draw corrects
+		else if (index === 1) {
+			chart.metric['corrects']['metric'] = new Metric(chart, 'corrects', chart.activeDay, y);
+			$("#corrects").html(chart.metric['corrects']['metric'].value);
+			index+=1;
+		}
+
+		// draw errors
+		else if (index === 2) {
+			chart.metric['errors']['metric'] = new Metric(chart, 'errors', chart.activeDay, y);
+			$("#errors").html(chart.metric['errors']['metric'].value);
+			index+=1;
+		}
+	});
+
+	chart.hammertime.on("swipeup tap", function(e) {
+		$('#adjustments').css("display", "block");
+	});
+
+	chart.hammertime.on("swipedown", function(e) {
+		$('#adjustments').css("display", "none");
+	});
+}
+
+Chart.prototype.createPaperDrawingArea = function() {
 	// store dom element
 	var drawDOMElement = document.getElementById('draw');
 
-	var chart = this;
 	// create a raphael 'paper' drawing area
 	this.paper = new Raphael(drawDOMElement, this.drawElement.width(), this.drawElement.height());
-	this.rectangle = this.paper.rect(0, 0, this.drawElement.width(), this.drawElement.height());  
-	this.rectangle.attr({
-		'fill' : '#fff',
-		'stroke' : '#fff'
-	});
-	
-	this.set = this.paper.set();
+}
 
-	// draw axes
-	this.drawXAxis();
-	this.drawYAxis();
-};
+Chart.prototype.createAdjustmentsTouchEvents = function() {
+	// set the height of the # adjustments div to be the height of the window
+	$('#adjustments').width($(window).width()); 
+
+	var chart = this;
+	$('.add').on('touchstart click', function(e){
+		e.preventDefault();
+		var label = $(this).attr('id'); // get the id of the div that was clicked
+
+		if (label === "add-correct") {
+			chart.metric['corrects']['metric'].changeValueAndMarker(1);
+		}
+
+		if (label === "add-floor") {
+			chart.metric['floor']['metric'].changeValueAndMarker(1);
+		}
+
+		if (label === "add-error") {
+			chart.metric['errors']['metric'].changeValueAndMarker(1);
+		}
+
+		if (label === "add-trial") {
+			chart.metric['trials']['metric'].changeValueAndMarker(1);
+		}
+	});
+
+	$('.subtract').on('touchstart click', function(e){
+		e.preventDefault();
+		var label = $(this).attr('id');
+
+		if (label === "sub-correct") {
+			chart.metric['corrects']['metric'].changeValueAndMarker(-1);
+		}
+
+		if (label === "sub-floor") {
+			chart.metric['floor']['metric'].changeValueAndMarker(-1);
+		}
+
+		if (label === "sub-error") {
+			chart.metric['errors']['metric'].changeValueAndMarker(-1);
+		}
+
+		if (label === "sub-trial") {
+			chart.metric['trials']['metric'].changeValueAndMarker(-1);
+		}
+	});	
+}
 
 Chart.prototype.getMarkerForMetric = function(type) {
 	return this.metric[type]['marker'];
 }
 
-Chart.prototype.drawPhaseline = function (x) {
-	var r = this.phaselineRadius;
-	var y = this.phaselineStartY;
-	var l = this.phaselineTopLength;
-	var z = this.phaselineBottomLength;
-	var linePath = 'M '+(x+r)+' '+y+' C '+(x+r)+' '+y+' '+(x+(r-35))+' '+(y)+' '+(x)+' '+(y+r-20)+' L '+(x)+' '+(y+r+l)+' L '+(x+(r-15))+' '+(y+r+l+z);
-	var newPhaseline = this.paper.path(linePath);
-	newPhaseline.attr({
-		'stroke-width': 1.5,
-		'stroke': '#404040'
-	});
-	this.phaseline['value'] = newPhaseline;
-}
-
-Chart.prototype.removePhaseline = function () {
-	this.phaseline['value'].remove();
-	this.phaseline['value'] = null;
-}
-
-Chart.prototype.adjustmentsInit = function() {
-	var chart = this;
-
-	// set the height of the # adjustments div to be the height of the window
-	$('#adjustments').width($(window).width()); 
-
-	$('.add').on('click', function(e){
-		e.preventDefault();
-		var numberPlusOne = parseInt($(this).prev().html()) + 1; // grab previous html element and add one to its value
-		var label = $(this).attr('id'); // get the id of the div that was clicked
-
-		if (label === "add-correct") {
-			if (chart.metric['corrects']['metric'] !== null) {
-				chart.metric['corrects']['metric'].changeMarkerValue(1);
-				$(this).prev().html(chart.metric['corrects']['metric'].value);
-				chart.metric['corrects']['metric'].changeMarkerPosition(1);
-			}
-		}
-
-		if (label === "add-floor") {
-			if (chart.markers['floor']['marker'] !== null) {
-				var increment;
-				var decadeNumber;
-				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
-					increment = .001; 
-					decadeNumber = 0;
-					roundingFactor = 1000;
-				}
-				if (chart.floorValue >= 0.01 && chart.floorValue < 0.1) {
-					increment = .01;
-					decadeNumber = 1;
-					roundingFactor = 100;
-				}
-				if (chart.floorValue >= .1 && chart.floorValue < 1) {
-					increment = .1;
-					decadeNumber = 2;
-					roundingFactor = 10;
-				}
-				if (chart.floorValue >= 1 && chart.floorValue < 10) {
-					increment = 1;
-					decadeNumber = 3;
-					roundingFactor = 1;
-				}
-				chart.floorValue = Math.round(chart.floorValue*roundingFactor)/roundingFactor + increment;
-				chart.editMarker('floors', chart.floorValue * roundingFactor, decadeNumber);
-				if (chart.floorValue > 1) {
-					chart.convertedFloorValue = Math.round(60/chart.floorValue*10)/10;
-				}
-				else {
-					chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
-				}
-				$(this).prev().html(chart.convertedFloorValue);
-			}
-		}
-
-		if (label === "add-error") {
-			if (chart.markers['errors']['marker'] !== null) {
-				chart.editMarker('errors', numberPlusOne, 3);
-				$(this).prev().html(numberPlusOne);
-			}
-		}
-
-		if (label === "add-trial") {
-			if (chart.markers['trials']['marker'] !== null) {
-				chart.editMarker('trials', numberPlusOne, 0);
-				$(this).prev().html(numberPlusOne);
-			}
-		}
-
-	});
-	$('.subtract').on('click', function(e){
-		e.preventDefault();
-		var numberMinusOne = parseInt($(this).next().html()) - 1;
-		var label = $(this).attr('id');
-
-		if (label === "sub-correct") {
-			if (chart.markers['corrects']['marker'] !== null && chart.markers['corrects']['value'] > 1) {
-				chart.editMarker('corrects', numberMinusOne, 3);
-				$(this).next().html(numberMinusOne);
-			}
-		}
-
-		if (label === "sub-floor") {
-			// only do something if a floor is in the set, floor is in position index 0 in aray
-			if (chart.markers['floor']['marker'] !== null) {
-				var decadeNumber;
-				var decrement;
-				if (chart.floorValue >= 0 && chart.floorValue < 0.01) {
-					decrement = .001; 
-					decadeNumber = 0;
-					roundingFactor = 1000;
-				}
-				if (chart.floorValue >= 0.01 && chart.floorValue < 0.1) {
-					decrement = .01;
-					decadeNumber = 1;
-					roundingFactor = 100;
-				}
-				if (chart.floorValue >= .1 && chart.floorValue < 1) {
-					decrement = .1;
-					decadeNumber = 2;
-					roundingFactor = 10;
-				}
-				if (chart.floorValue >= 1 && chart.floorValue < 10) {
-					decrement = 1;
-					decadeNumber = 3;
-					roundingFactor = 1;
-				}
-				chart.floorValue -=  Math.round(chart.floorValue*roundingFactor)/roundingFactor - decrement;
-				chart.editMarker('floor', chart.floorValue * roundingFactor, decadeNumber);
-				if (chart.floorValue > 1) {
-					chart.convertedFloorValue = Math.round(60/chart.floorValue*10)/10;
-				}
-				else {
-					chart.convertedFloorValue = Math.round(1/chart.floorValue*10)/10;
-				}
-				$(this).next().html(chart.convertedFloorValue);
-			}
-		}
-
-		if (label === "sub-error") {
-			if (chart.markers['errors']['marker'] !== null && chart.markers['errors']['value'] > 1) {
-				chart.editMarker('errors', numberMinusOne, 3);
-				$(this).next().html(numberMinusOne);
-			}
-		}
-
-		if (label === "sub-trial") {
-			if (chart.markers['trials']['marker'] !== null && chart.markers['trials']['value'] > 1) {
-				chart.editMarker('trials', numberMinusOne, 0);
-				$(this).next().html(numberMinusOne);
-			}
-		}
-	});	
-
-	$('#phaseline').on('click', function(e){
-		chart.drawPhaseline(chart.dayToXPosition(chart.activeDay));
-		$('#add-to-phaseline').css('display', 'inline-block');
-		$('#phaseline').css('display', 'none');
-		$('#remove-phaseline').css('display','inline-block');
-	});
-
-	$('#remove-phaseline').on('click', function(e) {
-		chart.removePhaseline();
-		$('#add-to-phaseline').css('display', 'none');
-		$('#remove-phaseline').css('display', 'none');
-		$('#phaseline').css('display', 'inline-block');
-	});
-
-	$('#add-to-phaseline').on('click', function(e){
-		chart.phaseline['note']=$('.note-input').val();
-		$('.modal').modal('hide');
-		$('.note-input').val('');
-		$('#phaseline-label').attr('data-content', chart.phaseline['note']);
-		$('#phaseline-label').data('popover').setContent();
-	});
-
-	$('#add-to-floor').on('click', function(e){
-		chart.markers['floor']['note']=$('.note-input').val();
-		$('.modal').modal('hide');
-		$('.note-input').val('');
-		$('#floor-label').attr('data-content', chart.markers['floor']['note']);
-		$('#floor-label').data('popover').setContent();
-	});
-
-	$('#add-to-correct').on('click', function(e){
-		chart.markers['corrects']['note']=$('.note-input').val();
-		$('.modal').modal('hide');
-		$('.note-input').val('');
-		$('#correct-label').attr('data-content', chart.markers['corrects']['note']);
-		$('#correct-label').data('popover').setContent();
-	});
-
-	$('#add-to-error').on('click', function(e){
-		chart.markers['errors']['note']=$('.note-input').val();
-		$('.modal').modal('hide');
-		$('.note-input').val('');
-		$('#error-label').attr('data-content', chart.markers['errors']['note']);
-		$('#error-label').data('popover').setContent();
-	});
-
-	$('#add-to-trial').on('click', function(e){
-		chart.markers['trials']['note']=$('.note-input').val();
-		$('.modal').modal('hide');
-		$('.note-input').val('');
-		$('#trial-label').attr('data-content', chart.markers['trials']['note']);
-		$('#trial-label').data('popover').setContent();
-	});
-
-	$('#error-label').popover({
-		placement:'top',
-        title: 'Note'
-	});
-
-	$('#trial-label').popover({
-		placement:'top',
-        title: 'Note'
-	});
-
-	$('#correct-label').popover({
-		placement:'top',
-        title: 'Note'
-	});
-
-	$('#floor-label').popover({
-		placement:'top',
-        title: 'Note'
-	});
-
-	$('#phaseline-label').popover({
-		placement:'top',
-        title: 'Note'
-	});
-
-}
-
-
 // draws the lines on the x axis of the chart
 Chart.prototype.drawXAxis = function() {
 	// for each decade, draw the lines within that decade on the log scale
-	var i;
-
 	// these variables define the x positions for the start and end of each line
 	var lineStartX = this.leftMargin;
 	var lineEndX = this.chartWidth;
@@ -382,107 +270,74 @@ Chart.prototype.drawXAxis = function() {
 
 	// a decade is the section between two exponents of ten on the chart. 
 	// For example, a decade would be from 1-10 or 0.001-0.01.
-	for (i = 0; i < this.numberOfDecades; i++) {
+	for (var i = 0; i < this.numberOfDecades; i++) {
 		var decadeBaseValue = Math.pow(10, this.minExponent + i);
 
 		// find the y position for the base value of the decade.
 		var decadeNumber = i;
 		var decadeBasePosition = chartBottomY - (decadeNumber * this.decadeHeight);
 
-		var numDigits = 3;
-		var lineAttrs = {
-			'weight': '1',
-			'color' : '#A6C5D3',
-			'dataName' : 'value',
-			'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
-		};
-		var labelAttr = {
-			'text-anchor': 'end',
-		}
-		var floorAttr = {
-			'font-size': 11,
-			'text-anchor': 'start'
-		}
-
-		// draw the baseValue line on the chart for this decade
-		this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + this.baseTickLength, decadeBasePosition, lineAttrs);
+		// draw the baseValue label on the chart for this decade
+		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue, this.chartStyles['decadebaselabel']);
+		
+		// draw floor labels for baseValue lines
 		if (decadeBaseValue === 1) {
-			this.drawLabel(lineEndX+70, decadeBasePosition, 1/decadeBaseValue+'"', floorAttr);
-			this.drawHorizontalLine(lineStartX, lineEndX+this.baseTickLength, decadeBasePosition, lineAttrs);
+			this.drawLabel(lineEndX+70, decadeBasePosition, 1/decadeBaseValue+'"', this.chartStyles['floorlabel']);
+			this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + 1.7*this.baseTickLength, decadeBasePosition, this.chartStyles['decadebaseline']);
 		}
-		if (decadeBaseValue < 1) {
-			this.drawLabel(lineEndX+70, decadeBasePosition, 1/decadeBaseValue+"'", floorAttr);
-			this.drawHorizontalLine(lineStartX, lineEndX+this.baseTickLength, decadeBasePosition, lineAttrs);
+		else if (decadeBaseValue < 1) {
+			this.drawLabel(lineEndX+70, decadeBasePosition, 1/decadeBaseValue+"'", this.chartStyles['floorlabel']);
+			this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + 1.7*this.baseTickLength, decadeBasePosition, this.chartStyles['decadebaseline']);
 		}
-		// writes the number label for the grid line
-		this.drawLabel(lineStartX - this.labelPadding, decadeBasePosition, decadeBaseValue, labelAttr);
+		else {
+			this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + this.baseTickLength, decadeBasePosition, this.chartStyles['decadebaseline']);
+		}
 
-		// if we're on the last decade, also draw the top line and ticker for the decade
+		// if we're on the last decade, draw a top baseValue line and label
 		if (decadeNumber === (this.numberOfDecades - 1)) {
 		    var topDecadePosition = decadeBasePosition - this.decadeHeight;
 		    var topDecadeValue = Math.pow(10, this.minExponent + i + 1);
-		    this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + this.baseTickLength, topDecadePosition, lineAttrs);
-		    this.drawLabel(lineStartX - this.labelPadding, topDecadePosition, topDecadeValue, labelAttr);
+		    this.drawHorizontalLine(lineStartX - this.baseTickLength, lineEndX + this.baseTickLength, topDecadePosition, this.chartStyles['decadebaseline']);
+		    this.drawLabel(lineStartX - this.labelPadding, topDecadePosition, topDecadeValue, this.chartStyles['decadebaselabel']);
 		}
 
 		// draw all the log lines for this decade
 		this.drawIntermediateLines(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX)
 	}
-	return 'done';
 }
 
 
 // get y positions for and draw lines for values in between the high and the low
 Chart.prototype.drawIntermediateLines = function(decadeNumber, decadeBaseValue, decadeBasePosition, lineStartX, lineEndX) {
-	var intermediateLineYPosition;
-
 	for (var j = 2; j < 10; j++) {
 		// solve equation where value equals two to nine, then multiply by base of the decade
 		var lineValue = j * decadeBaseValue;
-		intermediateLineYPosition = this.valueToYPosition(decadeBasePosition, lineValue, decadeBaseValue);
-
-		var numDigits = 3;
-		
-		lineAttrs = {
-			'weight': '0.4',
-			'color' : '#A6C5D3',
-			'dataName' : 'value',
-			'dataValue' : lineValue.toFixed(numDigits) + '',
-			'decadeNumber': decadeNumber.toFixed(numDigits) + '',
-		};
+		var intermediateLineYPosition = this.valueToYPosition(decadeBasePosition, lineValue, decadeBaseValue);
 
 		// only draw line with ticks and labels on the fifth line in the decade 
 		// (this is just how the chart is designed)
 		if (j === 5) {
-			var labelAttr = {
-				'font-size': 10,
-				'text-anchor': 'end'
-			}
-			var floorAttr = {
-				'font-size': 11,
-				'text-anchor': 'start'
-			}
-			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue, labelAttr);
-			this.drawHorizontalLine(lineStartX - this.intermediateTickLength, lineEndX + this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+			this.drawLabel(lineStartX - this.labelPadding, intermediateLineYPosition, lineValue, this.chartStyles['middlelabel']);
+			this.drawHorizontalLine(lineStartX - this.intermediateTickLength, lineEndX + this.intermediateTickLength, intermediateLineYPosition, this.chartStyles['middleline']);
+			// draw floor label
 			if (lineValue < 1) {
-				this.drawLabel(lineEndX+70, intermediateLineYPosition, 1/lineValue +"'", floorAttr);
-				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+				this.drawLabel(lineEndX+70, intermediateLineYPosition, 1/lineValue +"'", this.chartStyles['floorlabel']);
+				this.drawHorizontalLine(lineStartX - this.intermediateTickLength, lineEndX + 2*this.intermediateTickLength, intermediateLineYPosition, this.chartStyles['middleline']);
 			}
 		}
 
 		else {
-			var floorAttr = {
-				'font-size': 11,
-				'text-anchor': 'start'
-			}
-			this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, lineAttrs);
 			if (lineValue >=1 && lineValue <= 6) {
-				this.drawLabel(lineEndX+70, intermediateLineYPosition, 60/lineValue+'"', floorAttr);
-				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+				this.drawLabel(lineEndX+70, intermediateLineYPosition, 60/lineValue+'"', this.chartStyles['floorlabel']);
+				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition,  this.chartStyles['intermediateline']);
 			}
 			else if (lineValue === .002 || lineValue===.02 || lineValue===.2) {
-				this.drawLabel(lineEndX+70, intermediateLineYPosition, 1/lineValue +"'", floorAttr);
-				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition, lineAttrs);
+				this.drawLabel(lineEndX+70, intermediateLineYPosition, 1/lineValue +"'",  this.chartStyles['floorlabel']);
+				this.drawHorizontalLine(lineStartX, lineEndX+this.intermediateTickLength, intermediateLineYPosition,  this.chartStyles['intermediateline']);
+			}
+
+			else {
+				this.drawHorizontalLine(lineStartX, lineEndX, intermediateLineYPosition, this.chartStyles['intermediateline']);
 			}
 		}
 	}
@@ -538,17 +393,9 @@ Chart.prototype.drawHorizontalLine = function(x1, x2, y, params) {
 	// get attrs to add to line. set to defaults if they're undefined
 	var lineColor = params['color'] || '#000';
 	var lineWeight = params['weight'] || '1';
-	var dataName = params['dataName'] || '';
- 	var dataValue = params['dataValue'] || '';
- 	var decadeNumber = params['decadeNumber'] || 'julia says decade number not defined';
 
 	line.attr({"stroke-width": lineWeight,
-			   "stroke": lineColor})
-		.data(dataName, dataValue)
-		.data('decadeNumber', decadeNumber)
-        .click(function () {
-            //alert(this.data(dataName));
-         });
+			   "stroke": lineColor});
 }
 
 // draw regularly spaced lines for the number of days in the chart
@@ -566,8 +413,6 @@ Chart.prototype.drawYAxis = function() {
 		lineAttrs = {
 			'weight': '0.4',
 			'color' : '#A6C5D3',
-			'dataName' : 'value'
-			//'dataValue' : decadeBaseValue.toFixed(numDigits) + '',
 		};
 
 		labelAttr = {
@@ -612,13 +457,11 @@ Chart.prototype.drawYAxis = function() {
 	}
 }
 
-Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day) {
+Chart.prototype.drawVerticalLine = function(x, y1, y2, params) {
 	// console.log('drawing horizontal line at ' + y + 'from ' + x1 + ' to ' + x2);
 	var deltaX = 0; // zero because we don't want the line to be slanted
 	var deltaY = y2 - y1;
 	var basePath = "M " + x + ' ' + y1 + " l " + deltaX + ' ' + deltaY;
-
-	var isActive = activeState || false;
 
 	// add the line to the drawing area
 	var line = this.paper.path(basePath);
@@ -633,56 +476,6 @@ Chart.prototype.drawVerticalLine = function(x, y1, y2, params, activeState, day)
 	line.attr({"stroke-width": lineWeight,
 			   "stroke": lineColor});
 
-	if (isActive) {
-		this.createTouchEvents(line, day);
-	}
-}
-
-// function that draws points on the 'today' line when there is a touch input
-Chart.prototype.createTouchEvents = function(line, day) {
-	var chart = this;
-	var index = 0;
-	chart.hammertime.on("tap", function(e) {
-		// draw point on active day line
-		var chartBottomY = chart.chartHeight + chart.topMargin;
-		var y = chartBottomY - event.y;
-
-		// draw floor, floor must snap to grid
-		if (index === 0) {
-			chart.metric['floor']['metric'] = new Metric(chart, 'floor', chart.activeDay, y);
-			$("#floors").html(chart.metric['floor']['metric'].value);
-			index+=1;
-		}
-
-		// draw trials, trials must snap to grid
-		else if (index === 3) {
-			chart.metric['trials']['metric'] = new Metric(chart, 'trials', chart.activeDay, y);
-			$("#trials").html(chart.metric['trials']['metric'].value);
-			index+=1;
-		}
-
-		// draw corrects
-		else if (index === 1) {
-			chart.metric['corrects']['metric'] = new Metric(chart, 'corrects', chart.activeDay, y);
-			$("#corrects").html(chart.metric['corrects']['metric'].value);
-			index+=1;
-		}
-
-		// draw errors
-		else if (index === 2) {
-			chart.metric['errors']['metric'] = new Metric(chart, 'errors', chart.activeDay, y);
-			$("#errors").html(chart.metric['errors']['metric'].value);
-			index+=1;
-		}
-
-		if (index > 0) {
-			$('#adjustments').css("display", "block");
-		}
-
-		else {
-			$('#adjustments').css("display", "none");
-		}
-	});
 }
 
 // converts a day (in int form, between 0 and 140 and 
