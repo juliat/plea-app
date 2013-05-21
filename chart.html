@@ -26,73 +26,49 @@
 			<!--<div class="seesay">see/say</div>
 			<div class="colors">colors</div>-->
 			<div class="adjustment-section">
-				<div class="label-div">
-					<li id="floor-label" class="label">Floor</li>
-				</div>
-				<div class="adjustments-div">
-					<ul>
-						<li>
-			        		<button id="sub-floor" class="btn subtract"><i class="icon-arrow-down"></i></button>
-			        		<p id="floors" class="input"></p>
-			        		<button id="add-floor" class="btn add"><i class="icon-arrow-up"></i></button></li>
-		        	</ul>
-				</div>
+				<label id="floor-label" class="label" for="floor-input">
+					Floor
+				</label>
+				<button id="sub-floor" class="btn subtract">&#8722;</button>
+				<input type="text" name="floor-input" id="floors" class="input"></input>
+			    <button id="add-floor" class="btn add">+</button>
 			</div>
 			<div class="adjustment-section">
-				<div class="label-div">
-					<li id="correct-label" class="label">Corrects</li>
-				</div>
-				<div class="adjustments-div">
-					<ul>
-						<li>
-			        		<button id="sub-correct" class="btn subtract"><i class="icon-arrow-down"></i></button>
-			        		<p id="corrects" class="input"></p>
-			        		<button id="add-correct" class="btn add"><i class="icon-arrow-up"></i></button></li>
-		        	</ul>
-				</div>
+				<label id="correct-label" class="label" for="correct-input">
+					Corrects
+				</label>
+				<button id="sub-correct" class="btn subtract">&#8722;</button>
+				<input type="text" name="correct-input" id="corrects" class="input"></input>
+			    <button id="add-correct" class="btn add">+</button>
 			</div>
 			<div class="adjustment-section">
-				<div class="label-div">
-					<li id="error-label" class="label" rel="popover">Errors</li>
-				</div>
-				<div class="adjustments-div">
-					<ul>
-						<li>
-			        		<button id="sub-error" class="btn subtract"><i class="icon-arrow-down"></i></button>
-			        		<p id="errors" class="input"></p>
-			        		<button id="add-error" class="btn add"><i class="icon-arrow-up"></i></button></li>
-		        	</ul>
-				</div>
+				<label id="error-label" class="label" for="error-input">
+					Errors
+				</label>
+				<button id="sub-error" class="btn subtract">&#8722;</button>
+				<input type="text" name="error-input" id="errors" class="input"></input>
+			    <button id="add-error" class="btn add">+</button>
 			</div>
 			<div class="adjustment-section">
-				<div class="label-div">
-					<li id="trial-label" class="label">Trials</li>
-				</div>
-				<div class="adjustments-div">
-					<ul>
-						<li>
-			        		<button id="sub-trial" class="btn subtract"><i class="icon-arrow-down"></i></button>
-			        		<p id="trials" class="input"></p>
-			        		<button id="add-trial" class="btn add"><i class="icon-arrow-up"></i></button></li>
-		        	</ul>
-				</div>
+				<label id="trial-label" class="label" for="trial-input">
+					Trials
+				</label>
+				<button id="sub-trial" class="btn subtract">&#8722;</button>
+				<input type="text" name="trial-input" id="errors" class="input"></input>
+			    <button id="add-trial" class="btn add">+</button>
 			</div>
 
 			<div class="adjustment-section">
-				<div class="label-div">
-					<li id="phaseline-label" class="label">Phaseline</li>
-				</div>
-				<div class="adjustments-div">
-					<button id="phaseline" class="btn">Add</button>
-					<button id="remove-phaseline" class="btn">Remove</button>
-				</div>
+				<label id="phaseline-label" class="label">Phase Line</label>
+				<button id="phaseline" class="btn">Add Phase Line</button>
+				<button id="remove-phaseline" class="btn">Remove Phase Line</button>
 			</div>
-			<div class="adjustment-section">
+			<!-- <div class="adjustment-section">
 				<button id="note" class="btn pad" data-toggle="modal" data-target="#addnote">Add Note</button>
-			</div>
+			</div> -->
     	</div>
 
-    	<div class="modal hide fade" id="addnote" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    	<!-- <div class="modal hide fade" id="addnote" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     		<div class="modal-header">
     			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
     			<h3>Add Note:</h3>
@@ -110,7 +86,7 @@
 	    		<button id="add-to-trial" class="btn note">Trials</button>
 	   			<button id="add-to-phaseline" class="btn note">Phaseline</button>
 	    	</div>
-    	</div>
+    	</div> -->
 
     	<script type="text/javascript" src="raphael-min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>

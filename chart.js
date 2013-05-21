@@ -266,9 +266,6 @@ Chart.prototype.getElementYCoord = function(element, markerType) {
 Chart.prototype.adjustmentsInit = function() {
 	var chart = this;
 
-	// set the height of the # adjustments div to be the height of the window
-	$('#adjustments').width($(window).width()); 
-
 	$('.add').on('click', function(e){
 		e.preventDefault();
 		var numberPlusOne = parseInt($(this).prev().html()) + 1; // grab previous html element and add one to its value
