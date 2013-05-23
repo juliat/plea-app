@@ -25,7 +25,7 @@
 			</div>
 			<!--<div class="seesay">see/say</div>
 			<div class="colors">colors</div>-->
-			<div class="adjustment-section">
+			<div class="adjustment-section" id="floor-section">
 				<label id="floor-label" class="label" for="floor-input">
 					Floor
 				</label>
@@ -33,7 +33,7 @@
 				<input type="text" name="floor-input" id="floor" class="input"></input>
 			    <button id="add-floor" class="btn add">+</button>
 			</div>
-			<div class="adjustment-section">
+			<div class="adjustment-section" id="correct-section">
 				<label id="correct-label" class="label" for="correct-input">
 					Corrects
 				</label>
@@ -41,7 +41,7 @@
 				<input type="text" name="correct-input" id="corrects" class="input"></input>
 			    <button id="add-correct" class="btn add">+</button>
 			</div>
-			<div class="adjustment-section">
+			<div class="adjustment-section" id="error-section">
 				<label id="error-label" class="label" for="error-input">
 					Errors
 				</label>
@@ -49,7 +49,7 @@
 				<input type="text" name="error-input" id="errors" class="input"></input>
 			    <button id="add-error" class="btn add">+</button>
 			</div>
-			<div class="adjustment-section">
+			<div class="adjustment-section" id="trial-section">
 				<label id="trial-label" class="label" for="trial-input">
 					Trials
 				</label>
@@ -63,9 +63,6 @@
 				<button id="phaseline" class="btn">Add Phase Line</button>
 				<button id="remove-phaseline" class="btn">Remove Phase Line</button>
 			</div>
-			<!-- <div class="adjustment-section">
-				<button id="note" class="btn pad" data-toggle="modal" data-target="#addnote">Add Note</button>
-			</div> -->
     	</div>
 
     	<div class="modal hide fade" id="addPhaseline" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
@@ -83,7 +80,7 @@
 				<input type="checkbox" name="phaseline-type" value="Med">&nbsp Med<br/>
 				<input type="checkbox" name="phaseline-type" value="Slice">&nbsp Slice<br/><br />
 				<label class="label">Additional Notes:</label><br />
-	    		<input id="phaseline-notes"/>
+	    		<input id="phaseline-note"/>
 	    		<br/>
 	    	</div>
 	    	<div class="modal-footer">

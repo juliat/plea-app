@@ -149,8 +149,22 @@ Metric.prototype.drawCross = function(y) {
 Metric.prototype.changeMarkerValue = function(delta) {
 	if (this.type === 'floor') {
 		this.prevLogarithmicValue = this.logarithmicValue;
-		this.logarithmicValue += delta;
-		this.value = 60/(this.logarithmicValue);
+		var newDelta;
+		if (delta > 0) {
+			if (this.prevLogarithmicValue >= 1) newDelta = delta;
+			if (this.prevLogarithmicValue >= .1 && this.prevLogarithmicValue < 1) newDelta = delta/10;
+			if (this.prevLogarithmicValue >= .01 && this.prevLogarithmicValue < .1) newDelta = delta/100;
+			if (this.prevLogarithmicValue >= .001 && this.prevLogarithmicValue < .01) newDelta = delta/100;
+		}
+		else if (delta < 0) {
+			if (this.prevLogarithmicValue > 1) newDelta = delta;
+			if (this.prevLogarithmicValue > .101 && this.prevLogarithmicValue <= 1) newDelta = delta/10;
+			if (this.prevLogarithmicValue > .011 && this.prevLogarithmicValue <= .101) newDelta = delta/100;
+			if (this.prevLogarithmicValue > .001 && this.prevLogarithmicValue <= .011) newDelta = delta/100;
+		}
+		console.log(newDelta);
+		this.logarithmicValue += newDelta;
+		this.value = Math.round(60/(this.logarithmicValue));
 	}
 	else {
 		this.prevLogarithmicValue = this.logarithmicValue;
@@ -190,7 +204,12 @@ Metric.prototype.calculateNewYPosition = function() {
 Metric.prototype.changeValueAndMarker = function(delta) {
 	if (this !== null) {
 		this.changeMarkerValue(delta);
-		$('#'+this.type).val(this.value);
+		if (this.type === 'floor') {
+			$('#'+this.type).val(this.value+'"');
+		}
+		else {
+			$('#'+this.type).val(this.value);
+		}
 		this.changeMarkerPosition();
 	}
 }

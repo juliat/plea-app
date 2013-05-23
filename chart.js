@@ -68,7 +68,9 @@ Chart.prototype.setStyles = function() {
 	this.metricStyles = {
 		'filled-circle' : 	{
 								'fill-opacity': 1,
-						   		'fill': '#000'
+						   		'fill': '#7FFF00',
+						   		'stroke': 0,
+						   		'opacity': .9
 						   	},
 		'line' : 			{ 
 								'stroke-width': '1',
@@ -76,15 +78,24 @@ Chart.prototype.setStyles = function() {
 					 		},
 		'cross' : 			{ 
 								'stroke-width': '1',
-				    			'stroke': "#000"
+				    			'stroke': "#F62817",
+				    			'opacity': .9
 				    		},
 		'empty-circle' : 	{
 								'fill-opacity': 0
 							}
 	};
 	this.phaselineStyles = {
-		'stroke-width' : 1.5,
-		'stroke' : '#404040'
+		'phaseline' : 		{
+								'stroke-width' : 1.5,
+								'stroke' : '#404040'
+							},
+		'phaseline-floor' : {
+								'text-anchor' : 'start'
+							},
+		'phaseline-note' : 	{
+								'text-anchor' : 'middle'
+							}
 	}
 	this.chartStyles = {
 		// horizontal lines and labels
@@ -169,7 +180,7 @@ Chart.prototype.setDimensions = function() {
 // function that draws points on the 'today' line when there is a touch input
 Chart.prototype.createChartTouchEvents = function() {
 	var chart = this;
-	var index = 0;
+	this.activeMetric = 'floor';
 	chart.hammertime = $("#draw").hammer();
 
 	// draw point on active day line
@@ -179,39 +190,68 @@ Chart.prototype.createChartTouchEvents = function() {
 		var y = chartBottomY - event.y;
 
 		// draw floor
-		if (index === 0) {
+		if (chart.activeMetric === 'floor') {
+			if (chart.metric['floor']['metric'] !== null) chart.metric['floor']['metric'].paperObject.remove();
 			chart.metric['floor']['metric'] = new Metric(chart, 'floor', chart.activeDay, y);
-			$("#floor").val(chart.metric['floor']['metric'].value);
-			index+=1;
+			$("#floor").val(chart.metric['floor']['metric'].value+'"');
+			$("#floor-section").css('background','rgba(242,242,242,.8)');
+			if (chart.metric['corrects']['metric'] === null) {
+				$('#adjustments').css("display", "block");
+				chart.activeMetric = 'corrects';
+				$("#correct-section").css('background','rgba(200,200,200,.8)');
+			}
+			else {
+				chart.activeMetric = ' '
+			}
 		}
 
 		// draw trials
-		else if (index === 3) {
+		else if (chart.activeMetric === 'trials') {
+			if (chart.metric['trials']['metric'] !== null) chart.metric['trials']['metric'].paperObject.remove();
 			chart.metric['trials']['metric'] = new Metric(chart, 'trials', chart.activeDay, y);
 			$("#trials").val(chart.metric['trials']['metric'].value);
-			index+=1;
+			chart.activeMetric = ' '
+			$("#trial-section").css('background','rgba(242,242,242,.8)');
 		}
 
 		// draw corrects
-		else if (index === 1) {
+		else if (chart.activeMetric === 'corrects') {
+			if (chart.metric['corrects']['metric'] !== null) chart.metric['corrects']['metric'].paperObject.remove();
 			chart.metric['corrects']['metric'] = new Metric(chart, 'corrects', chart.activeDay, y);
 			$("#corrects").val(chart.metric['corrects']['metric'].value);
-			index+=1;
+			$("#correct-section").css('background','rgba(242,242,242,.8)');
+			if (chart.metric['errors']['metric'] === null) {
+				chart.activeMetric = 'errors';
+				$("#error-section").css('background','rgba(200,200,200,.8)');
+			}
+			else {
+				chart.activeMetric = ' '
+			}
 		}
 
 		// draw errors
-		else if (index === 2) {
+		else if (chart.activeMetric === 'errors') {
+			if (chart.metric['errors']['metric'] !== null) chart.metric['errors']['metric'].paperObject.remove();
 			chart.metric['errors']['metric'] = new Metric(chart, 'errors', chart.activeDay, y);
 			$("#errors").val(chart.metric['errors']['metric'].value);
-			index+=1;
+			$("#error-section").css('background','rgba(242,242,242,.8)');
+			if (chart.metric['trials']['metric'] === null) {
+				chart.activeMetric = 'trials';
+				$("#trial-section").css('background','rgba(200,200,200,.8)');
+			}
+			else {
+				chart.activeMetric = ' '
+			}
 		}
 	});
 
-	chart.hammertime.on("swipeup tap", function(e) {
+	chart.hammertime.on("swipeleft", function(e) {
+		e.preventDefault();
 		$('#adjustments').css("display", "block");
 	});
 
-	chart.hammertime.on("swipedown", function(e) {
+	chart.hammertime.on("swiperight", function(e) {
+		e.preventDefault();
 		$('#adjustments').css("display", "none");
 	});
 }
@@ -266,7 +306,40 @@ Chart.prototype.createAdjustmentsTouchEvents = function() {
 		if (label === "sub-trial") {
 			chart.metric['trials']['metric'].changeValueAndMarker(-1);
 		}
-	});	
+	});
+
+	$('#floor-label').on('touchstart click', function(e){
+		e.preventDefault();
+		chart.activeMetric = 'floor';
+		$("#floor-section").css('background','rgba(200,200,200,.8)');
+		$("#error-section").css('background','rgba(242,242,242,.8)');
+		$("#correct-section").css('background','rgba(242,242,242,.8)');
+		$("#trial-section").css('background','rgba(242,242,242,.8)');
+	});
+	$('#correct-label').on('touchstart click', function(e){
+		e.preventDefault();
+		chart.activeMetric = 'corrects';
+		$("#correct-section").css('background','rgba(200,200,200,.8)');
+		$("#error-section").css('background','rgba(242,242,242,.8)');
+		$("#floor-section").css('background','rgba(242,242,242,.8)');
+		$("#trial-section").css('background','rgba(242,242,242,.8)');
+	});
+	$('#error-label').on('touchstart click', function(e){
+		e.preventDefault();
+		chart.activeMetric = 'errors';
+		$("#error-section").css('background','rgba(200,200,200,.8)');
+		$("#floor-section").css('background','rgba(242,242,242,.8)');
+		$("#correct-section").css('background','rgba(242,242,242,.8)');
+		$("#trial-section").css('background','rgba(242,242,242,.8)');
+	});
+	$('#trial-label').on('touchstart click', function(e){
+		e.preventDefault();
+		chart.activeMetric = 'trials';
+		$("#trial-section").css('background','rgba(200,200,200,.8)');
+		$("#error-section").css('background','rgba(242,242,242,.8)');
+		$("#correct-section").css('background','rgba(242,242,242,.8)');
+		$("#floor-section").css('background','rgba(242,242,242,.8)');
+	});
 }
 
 Chart.prototype.createPhaselineTouchEvents = function() {
@@ -276,6 +349,7 @@ Chart.prototype.createPhaselineTouchEvents = function() {
 		$('#addPhaseline').modal('show');
 	});
 	$('#add-phaseline').on('touchstart click', function(e){
+		e.preventDefault();
 		var phaselineFloor = $("#phaseline-floor").val();
 		var type;
 		$("input[type='checkbox']:checked").each(function() {
@@ -284,6 +358,14 @@ Chart.prototype.createPhaselineTouchEvents = function() {
 		var note = $("#phaseline-note").val();
 		$('#addPhaseline').modal('hide');
 		chart.phaseline['phaseline'] = new PhaseLine(chart, chart.activeDay, type, note, phaselineFloor);
+		$('#phaseline').css('display', 'none');
+		$('#remove-phaseline').css('display', 'inline-block');
+	});
+	$('#remove-phaseline').on('touchstart click', function(e){
+		e.preventDefault();
+		chart.phaseline['phaseline'].paperObject.remove();
+		$('#phaseline').css('display', 'inline-block');
+		$('#remove-phaseline').css('display', 'none');
 	});
 }
 
