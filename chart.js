@@ -180,28 +180,28 @@ Chart.prototype.createChartTouchEvents = function() {
 		// draw floor
 		if (index === 0) {
 			chart.metric['floor']['metric'] = new Metric(chart, 'floor', chart.activeDay, y);
-			$("#floor").html(chart.metric['floor']['metric'].value);
+			$("#floor").val(chart.metric['floor']['metric'].value);
 			index+=1;
 		}
 
 		// draw trials
 		else if (index === 3) {
 			chart.metric['trials']['metric'] = new Metric(chart, 'trials', chart.activeDay, y);
-			$("#trials").html(chart.metric['trials']['metric'].value);
+			$("#trials").val(chart.metric['trials']['metric'].value);
 			index+=1;
 		}
 
 		// draw corrects
 		else if (index === 1) {
 			chart.metric['corrects']['metric'] = new Metric(chart, 'corrects', chart.activeDay, y);
-			$("#corrects").html(chart.metric['corrects']['metric'].value);
+			$("#corrects").val(chart.metric['corrects']['metric'].value);
 			index+=1;
 		}
 
 		// draw errors
 		else if (index === 2) {
 			chart.metric['errors']['metric'] = new Metric(chart, 'errors', chart.activeDay, y);
-			$("#errors").html(chart.metric['errors']['metric'].value);
+			$("#errors").val(chart.metric['errors']['metric'].value);
 			index+=1;
 		}
 	});
@@ -224,9 +224,6 @@ Chart.prototype.createPaperDrawingArea = function() {
 }
 
 Chart.prototype.createAdjustmentsTouchEvents = function() {
-	// set the height of the # adjustments div to be the height of the window
-	$('#adjustments').width($(window).width()); 
-
 	var chart = this;
 	$('.add').on('touchstart click', function(e){
 		e.preventDefault();

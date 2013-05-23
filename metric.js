@@ -190,7 +190,7 @@ Metric.prototype.calculateNewYPosition = function() {
 Metric.prototype.changeValueAndMarker = function(delta) {
 	if (this !== null) {
 		this.changeMarkerValue(delta);
-		$('#'+this.type).html(this.value);
+		$('#'+this.type).val(this.value);
 		this.changeMarkerPosition();
 	}
 }
