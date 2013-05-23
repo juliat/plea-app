@@ -3,15 +3,39 @@ body {
 	font-size: 14px;
 	line-height: 21px;
 }
+#adjustments {
+  	display: none;
+  	z-index: 10;
+  	color: black;
+  	background: rgba(242,242,242,.8);
+  	position: absolute;
+  	right: 0px;
+  	width: 21%;
+  	top: 0;
+  	height: 100%;
+  	border-left: 1px solid #CCC;
+}
 
 .adjustment-section {
-	width: 130px;
+	width: 100%;
 	padding-left: 10px;
-	float: left;
 	display: inline-block;
-	height: 65px;
 	position: relative;
-	border-left: 1px solid #CCC;
+	padding: 0.5em 1em 1.33em 1em;
+	border-top: 1px solid #ddd;
+}
+#adjustments .btn {
+    font-size: 1.5em;
+    padding: 0.5em 0.6em 0.6em 0.6em;
+    line-height: 1;
+    background-color: #ccc;
+    border: none;
+    border-radius: 1em;
+}
+#phaseline.btn {
+    font-size: 1.2em;
+    border-radius: 0.33em;
+    padding: 0.6em 0.8em;
 }
 
 #draw {
@@ -41,17 +65,6 @@ body {
 	height: 100%;
 	position: absolute;
 }
-
-#adjustments {
-  	display: none;
-  	z-index: 10;
-  	color: black;
-  	height: 65px;
-  	background: rgba(242,242,242,.7);
-  	position: absolute;
-  	bottom: 0px;
-}
-
 .adjustments-div {
 	position: absolute;
 	top: 30px;
@@ -59,12 +72,16 @@ body {
 }
 
 .input {
-	width: 40px;
-	height: 30px;
+	width: 2em;
 	background-color: white;
 	display: inline-block;
 	text-align: center;
-	line-height: 40px;
+	margin: 0;
+	line-height: 1;
+	font-size: 1.5em;
+	padding: 0.4em 0.25em 0.5em;
+	border: 2px solid #ccc;
+	border-radius: 0.2em;
 }
 
 .seesay {
@@ -79,14 +96,15 @@ body {
 }
 
 .label {
-	margin-top: 4px;
-	margin-bottom: 4px;
+	display: block;
+	margin-bottom: 0.33em;
 }
 
 h4 {
 	display: inline-block;
 	text-align: left;
-	float: left;
+	font-size: 2em;
+	margin: 0.5em 0 0.33em 0;
 }
 
 ul {
@@ -102,7 +120,6 @@ li {
 }
 
 img, button {
-	float: left;
 	display: inline-block;
 }
 
