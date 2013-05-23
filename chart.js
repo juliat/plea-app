@@ -82,6 +82,10 @@ Chart.prototype.setStyles = function() {
 								'fill-opacity': 0
 							}
 	};
+	this.phaselineStyles = {
+		'stroke-width' : 1.5,
+		'stroke' : '#404040'
+	}
 	this.chartStyles = {
 		// horizontal lines and labels
 		'decadebaseline' : 	{
@@ -139,6 +143,8 @@ Chart.prototype.setDimensions = function() {
 	var height = $(window).height();
 	$("#draw").width(width);
 	$("#draw").height(height);
+	console.log(width);
+	console.log(height);
 
 	// get dimensions from jquery drawElement to define chart height, width and margins
 	this.drawElement = $('#draw');

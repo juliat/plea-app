@@ -1,19 +1,29 @@
 /* Phase Line Class */
 
-function PhaseLine() {
+function PhaseLine(chart, day) {
 	this.value = null;
-}
-
-PhaseLine.prototype.draw = function() {
-
+	this.phaselineRadius = chart.drawElement.height()*.0625;
+	this.phaselineTopLength = chart.drawElement.height()*.6875;
+	this.phaselineTopLength = chart.drawElement.height()*.125;
+	this.phaselineStartY = chart.drawElement.height()*.09375;
 }
 
 PhaseLine.prototype.create = function(name, noteText) {
 	
 }
 
-PhaseLine.prototype.drawNote = function() {
+PhaseLine.prototype.drawPhaseline = function() {
+	var r = this.phaselineRadius;
+	var y = this.phaselineStartY;
+	var l = this.phaselineTopLength;
+	var z = this.phaselineBottomLength;
+	var linePath = 'M '+(x-r)+' '+y+' C '+(x-r)+' '+y+' '+(x-(r-35))+' '+y+' '+x+' '+(y+(r-20))+' '+' L '+(x)+' '+(y+r+l)+' L '+(x+(r-15))+' '+(y+r+l+z);
+	var newPhaseline = chart.paper.path(linePath);
+	newPhaseline.attr(chart.phaselineStyles);
+}
 
+PhaseLine.prototype.drawNote = function() {
+	
 }
 
 /*
