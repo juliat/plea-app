@@ -34,6 +34,7 @@ Chart.prototype.init = function() {
 	this.createChartTouchEvents();
 	this.createPaperDrawingArea();
 	this.createAdjustmentsTouchEvents();
+	this.createPhaselineTouchEvents();
 	this.drawXAxis();
 	this.drawYAxis();
 }
@@ -59,8 +60,7 @@ Chart.prototype.setObjects = function() {
 	};
 
 	this.phaseline = {
-		'value' : null,
-		'note' : null
+		'phaseline' : null
 	};
 }
 
@@ -174,6 +174,7 @@ Chart.prototype.createChartTouchEvents = function() {
 
 	// draw point on active day line
 	chart.hammertime.on("tap", function(e) {
+		e.preventDefault();
 		var chartBottomY = chart.chartHeight + chart.topMargin;
 		var y = chartBottomY - event.y;
 
@@ -266,6 +267,24 @@ Chart.prototype.createAdjustmentsTouchEvents = function() {
 			chart.metric['trials']['metric'].changeValueAndMarker(-1);
 		}
 	});	
+}
+
+Chart.prototype.createPhaselineTouchEvents = function() {
+	var chart = this;
+	$('#phaseline').on('touchstart click', function(e){
+		e.preventDefault();
+		$('#addPhaseline').modal('show');
+	});
+	$('#add-phaseline').on('touchstart click', function(e){
+		var phaselineFloor = $("#phaseline-floor").val();
+		var type;
+		$("input[type='checkbox']:checked").each(function() {
+			type=$(this).val();
+		});
+		var note = $("#phaseline-note").val();
+		$('#addPhaseline').modal('hide');
+		chart.phaseline['phaseline'] = new PhaseLine(chart, chart.activeDay, type, note, phaselineFloor);
+	});
 }
 
 Chart.prototype.getMarkerForMetric = function(type) {

@@ -68,30 +68,34 @@
 			</div> -->
     	</div>
 
-    	<!-- <div class="modal hide fade" id="addnote" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    	<div class="modal hide fade" id="addPhaseline" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
     		<div class="modal-header">
     			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-    			<h3>Add Note:</h3>
+    			<h3>Phaseline</h3>
     		</div>
     		<div class="modal-body">
-	    		<input class="note-input"/>
+    			<label class="label">Phaseline Floor Value:</label><br />
+    			<input id="phaseline-floor"/><br /><br />
+    			<label class="label">Type of Phaseline</label><br />
+    			<input type="checkbox" name="phaseline-type" value="BOC">&nbsp BOC<br/>
+				<input type="checkbox" name="phaseline-type" value="Error">&nbsp Error<br/>
+				<input type="checkbox" name="phaseline-type" value="Holiday">&nbsp Holiday<br/>
+				<input type="checkbox" name="phaseline-type" value="Med">&nbsp Med<br/>
+				<input type="checkbox" name="phaseline-type" value="Slice">&nbsp Slice<br/><br />
+				<label class="label">Additional Notes:</label><br />
+	    		<input id="phaseline-notes"/>
 	    		<br/>
-	    		<br/>
-	    		<p>Add this note to:</p>
 	    	</div>
 	    	<div class="modal-footer">
-	    		<button id="add-to-floor" class="btn note">Floor</button>
-	    		<button id="add-to-correct" class="btn note">Corrects</button>
-	    		<button id="add-to-error" class="btn note">Errors</button>
-	    		<button id="add-to-trial" class="btn note">Trials</button>
-	   			<button id="add-to-phaseline" class="btn note">Phaseline</button>
+	    		<button id="add-phaseline" class="btn">Add Phaseline</button>
 	    	</div>
-    	</div> -->
+    	</div>
 
     	<script type="text/javascript" src="raphael-min.js"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 		<script type="text/javascript" src="chart.js"></script>
 		<script type="text/javascript" src="metric.js"></script>
+		<script type="text/javascript" src="phase_line.js"></script>
 		<script type="text/javascript" src="ratefinder-chart.js"></script>
 		<script type="text/javascript" src="hammer.min.js"></script>
 		<script type="text/javascript" src="js/bootstrap.min.js"></script>

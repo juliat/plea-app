@@ -1,82 +1,52 @@
 /* Phase Line Class */
 
-function PhaseLine(chart, day) {
+function PhaseLine(chart, day, type, note, floor) {
 	this.value = null;
+	this.chart = chart;
+	this.day = day;
+	this.type = type;
+	this.note = note;
+	this.floor = floor;
+	this.x = chart.dayToXPosition(day);
 	this.phaselineRadius = chart.drawElement.height()*.0625;
-	this.phaselineTopLength = chart.drawElement.height()*.6875;
-	this.phaselineTopLength = chart.drawElement.height()*.125;
+	this.phaselineTopLength = chart.drawElement.height()*.65;
+	this.phaselineBottomLength = chart.drawElement.height()*.125;
 	this.phaselineStartY = chart.drawElement.height()*.09375;
+	this.create();
 }
 
-PhaseLine.prototype.create = function(name, noteText) {
-	
+PhaseLine.prototype.create = function() {
+	this.drawPhaseline();
+	this.drawFloor();
+	this.drawType();
+	this.drawNote();
 }
 
 PhaseLine.prototype.drawPhaseline = function() {
+	var x = this.x;
 	var r = this.phaselineRadius;
 	var y = this.phaselineStartY;
 	var l = this.phaselineTopLength;
 	var z = this.phaselineBottomLength;
-	var linePath = 'M '+(x-r)+' '+y+' C '+(x-r)+' '+y+' '+(x-(r-35))+' '+y+' '+x+' '+(y+(r-20))+' '+' L '+(x)+' '+(y+r+l)+' L '+(x+(r-15))+' '+(y+r+l+z);
-	var newPhaseline = chart.paper.path(linePath);
-	newPhaseline.attr(chart.phaselineStyles);
+	var linePath = 'M '+(x-r)+' '+y+' C '+(x-r)+' '+y+' '+(x-(r-35))+' '+y+' '+x+' '+(y+(r-20))+' '+' L '+(x)+' '+(y+r+l)+' L '+(x-(r-30))+' '+(y+r+l+z);
+	var newPhaseline = this.chart.paper.path(linePath);
+	newPhaseline.attr(this.chart.phaselineStyles);
+}
+
+PhaseLine.prototype.drawFloor = function() {
+	var x = this.x;
+	var r = this.phaselineRadius;
+	var y = this.phaselineStartY;
+	var floor = this.chart.paper.text(x-r, y+10, this.floor);
+	floor.attr({
+		'text-anchor' : 'start'
+	})
+}
+
+PhaseLine.prototype.drawType = function() {
+
 }
 
 PhaseLine.prototype.drawNote = function() {
 	
 }
-
-/*
-Chart.prototype.drawPhaseline = function (x) {
-	var r = this.phaselineRadius;
-	var y = this.phaselineStartY;
-	var l = this.phaselineTopLength;
-	var z = this.phaselineBottomLength;
-	var linePath = 'M '+(x+r)+' '+y+' C '+(x+r)+' '+y+' '+(x+(r-35))+' '+(y)+' '+(x)+' '+(y+r-20)+' L '+(x)+' '+(y+r+l)+' L '+(x+(r-15))+' '+(y+r+l+z);
-	var newPhaseline = this.paper.path(linePath);
-	newPhaseline.attr({
-		'stroke-width': 1.5,
-		'stroke': '#404040'
-	});
-	this.phaseline['value'] = newPhaseline;
-}
-
-Chart.prototype.removePhaseline = function () {
-	this.phaseline['value'].remove();
-	this.phaseline['value'] = null;
-}
-*/
-
-/*
-	this.phaselineRadius = 40;
-	this.phaselineTopLength = 440;
-	this.phaselineBottomLength = 80;
-	this.phaselineStartY = 60;*/
-
-/*
-	$('#phaseline').on('click', function(e){
-		chart.drawPhaseline(chart.dayToXPosition(chart.activeDay));
-		$('#add-to-phaseline').css('display', 'inline-block');
-		$('#phaseline').css('display', 'none');
-		$('#remove-phaseline').css('display','inline-block');
-	});
-
-	$('#remove-phaseline').on('click', function(e) {
-		chart.removePhaseline();
-		$('#add-to-phaseline').css('display', 'none');
-		$('#remove-phaseline').css('display', 'none');
-		$('#phaseline').css('display', 'inline-block');
-	});
-
-	$('#add-to-phaseline').on('click', function(e){
-		chart.phaseline['note']=$('.note-input').val();
-		$('.modal').modal('hide');
-		$('.note-input').val('');
-		$('#phaseline-label').attr('data-content', chart.phaseline['note']);
-		$('#phaseline-label').data('popover').setContent();
-	});
-
-	$('#phaseline-label').popover({
-		placement:'top',
-        title: 'Note'
-	});*/
