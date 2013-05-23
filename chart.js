@@ -36,7 +36,7 @@ Chart.prototype.init = function() {
 	this.createAdjustmentsTouchEvents();
 	this.drawXAxis();
 	this.drawYAxis();
-};
+}
 
 Chart.prototype.setObjects = function() {
 	this.metric = {
