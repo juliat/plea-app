@@ -40,6 +40,7 @@ Chart.prototype.init = function() {
 }
 
 Chart.prototype.setObjects = function() {
+	this.metricsOrder = ['floor', 'corrects', 'trials', 'errors'];
 	this.metric = {
 		'corrects' : {
 						'marker' : 'filled-circle',
@@ -152,6 +153,7 @@ Chart.prototype.setDimensions = function() {
 	// initialize width and height of chart based on window size
 	var width = $(window).width();
 	var height = $(window).height();
+	// #draw div is the wrapper for the chart
 	$("#draw").width(width);
 	$("#draw").height(height);
 	console.log(width);
@@ -159,7 +161,7 @@ Chart.prototype.setDimensions = function() {
 
 	// get dimensions from jquery drawElement to define chart height, width and margins
 	this.drawElement = $('#draw');
-	this.bottomMargin = this.drawElement.height() * 0.1;
+	this.bottomMargin = this.drawElement.height() * 0.05;
 	this.topMargin = this.drawElement.height() * 0.05;
 	this.leftMargin = this.drawElement.width() * 0.05;
 	this.rightMargin = this.drawElement.width() * 0.05;
@@ -177,6 +179,62 @@ Chart.prototype.setDimensions = function() {
 	this.decadeHeight = this.chartHeight / this.numberOfDecades;
 }
 
+// given a string with a metric name, returns the next metric that should
+// be entered by the user
+Chart.prototype.getNextMetric = function(metricName) {
+	var chart = this;
+	// find this one in the list metrics in order
+	var thisIndex = chart.metricsOrder.indexOf(metricName);
+	var nextMetric = 'none';
+
+	// if the next metric is within array bounds, return it
+	if (thisIndex + 1 < chart.metricsOrder.length) {
+		var nextMetric = chart.metricsOrder[thisIndex+1];
+	}
+	// otherwise return the default value of 'none'
+	return nextMetric;
+}
+
+// save and display a metric inputted by the user
+// param metricName: metric name as a string
+Chart.prototype.saveMetric = function(metricName, yValue) {
+	var chart = this;
+	// if the metric is already on the chart, remove it
+	if (chart.metric[metricName]['metric'] !== null) {
+		chart.metric[metricName]['metric'].paperObject.remove();
+	}
+	
+	// create a new instance of Metric for this metric
+	chart.metric[metricName]['metric'] = new Metric(chart, 'floor', chart.activeDay, yValue);
+
+	// update the marker on the chart
+	var htmlMetricID = "#"+metricName;
+	// find it and set it to the new value
+	$(htmlMetricID).val(chart.metric[metricName]['metric'].value+'"');
+	
+	// highlight the corresponding setion for this metric in the adjustments panel
+	var htmlAdjustmentSectionID = "#"+metricName+"-section";
+	$("htmlAdjustmentSectionID").css('background','rgba(242,242,242,.8)');
+	// TODO: this should really be adding a class rather than modifying the css
+	// and probably in its own "highlightMetricAdjustment" function
+
+	var nextMetric = chart.getNextMetric(metricName);
+	// if the next metric to be entered hasn't been set yet,
+	if (chart.metric[nextMetric]['metric'] === null) {
+		// set it as the active metric 
+		chart.activeMetric = nextMetric;
+
+		// and highlight that section in the adjustments panel
+		$('#adjustments').css("display", "block");
+		htmlAdjustmentSectionID = "#"+metricName+"-section";
+		$(htmlAdjustmentSectionID).css('background','rgba(200,200,200,.8)');
+	}
+	// otherwise set the activeMetric to none
+	else {
+		chart.activeMetric = ' '
+	}
+}
+
 // function that draws points on the 'today' line when there is a touch input
 Chart.prototype.createChartTouchEvents = function() {
 	var chart = this;
@@ -189,67 +247,16 @@ Chart.prototype.createChartTouchEvents = function() {
 		var chartBottomY = chart.chartHeight + chart.topMargin;
 		var y = chartBottomY - event.y;
 
-		// draw floor
-		if (chart.activeMetric === 'floor') {
-			if (chart.metric['floor']['metric'] !== null) chart.metric['floor']['metric'].paperObject.remove();
-			chart.metric['floor']['metric'] = new Metric(chart, 'floor', chart.activeDay, y);
-			$("#floor").val(chart.metric['floor']['metric'].value+'"');
-			$("#floor-section").css('background','rgba(242,242,242,.8)');
-			if (chart.metric['corrects']['metric'] === null) {
-				$('#adjustments').css("display", "block");
-				chart.activeMetric = 'corrects';
-				$("#correct-section").css('background','rgba(200,200,200,.8)');
-			}
-			else {
-				chart.activeMetric = ' '
-			}
-		}
-
-		// draw trials
-		else if (chart.activeMetric === 'trials') {
-			if (chart.metric['trials']['metric'] !== null) chart.metric['trials']['metric'].paperObject.remove();
-			chart.metric['trials']['metric'] = new Metric(chart, 'trials', chart.activeDay, y);
-			$("#trials").val(chart.metric['trials']['metric'].value);
-			chart.activeMetric = ' '
-			$("#trial-section").css('background','rgba(242,242,242,.8)');
-		}
-
-		// draw corrects
-		else if (chart.activeMetric === 'corrects') {
-			if (chart.metric['corrects']['metric'] !== null) chart.metric['corrects']['metric'].paperObject.remove();
-			chart.metric['corrects']['metric'] = new Metric(chart, 'corrects', chart.activeDay, y);
-			$("#corrects").val(chart.metric['corrects']['metric'].value);
-			$("#correct-section").css('background','rgba(242,242,242,.8)');
-			if (chart.metric['errors']['metric'] === null) {
-				chart.activeMetric = 'errors';
-				$("#error-section").css('background','rgba(200,200,200,.8)');
-			}
-			else {
-				chart.activeMetric = ' '
-			}
-		}
-
-		// draw errors
-		else if (chart.activeMetric === 'errors') {
-			if (chart.metric['errors']['metric'] !== null) chart.metric['errors']['metric'].paperObject.remove();
-			chart.metric['errors']['metric'] = new Metric(chart, 'errors', chart.activeDay, y);
-			$("#errors").val(chart.metric['errors']['metric'].value);
-			$("#error-section").css('background','rgba(242,242,242,.8)');
-			if (chart.metric['trials']['metric'] === null) {
-				chart.activeMetric = 'trials';
-				$("#trial-section").css('background','rgba(200,200,200,.8)');
-			}
-			else {
-				chart.activeMetric = ' '
-			}
-		}
+		chart.saveMetric(chart.activeMetric);
 	});
 
+	// show the adjustments panel when the user swipes left
 	chart.hammertime.on("swipeleft", function(e) {
 		e.preventDefault();
 		$('#adjustments').css("display", "block");
 	});
 
+	// hide the adjustments panel when the user swipes right
 	chart.hammertime.on("swiperight", function(e) {
 		e.preventDefault();
 		$('#adjustments').css("display", "none");
@@ -344,17 +351,21 @@ Chart.prototype.createAdjustmentsTouchEvents = function() {
 
 Chart.prototype.createPhaselineTouchEvents = function() {
 	var chart = this;
+	// when you click on the add phase line element, show the modal
 	$('#phaseline').on('touchstart click', function(e){
 		e.preventDefault();
 		$('#addPhaseline').modal('show');
 	});
+	// TODO: comment this code!
 	$('#add-phaseline').on('touchstart click', function(e){
 		e.preventDefault();
+		// setup values in modal (is that what this is doing?)
 		var phaselineFloor = $("#phaseline-floor").val();
 		var type;
 		$("input[type='checkbox']:checked").each(function() {
 			type=$(this).val();
 		});
+
 		var note = $("#phaseline-note").val();
 		$('#addPhaseline').modal('hide');
 		chart.phaseline['phaseline'] = new PhaseLine(chart, chart.activeDay, type, note, phaselineFloor);
